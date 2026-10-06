@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "SYNOVATE"
+description = "A premium financial planning and decision-support app foundation, with a responsive dashboard shell, placeholder planning pages, and extensible API and PostgreSQL architecture."
+version = "1.0.0"
+id = "artifacts/synovate"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 18479
+
+[services.development]
+run = "pnpm --filter @workspace/synovate run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/synovate", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/synovate/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "18479"
+BASE_PATH = "/"

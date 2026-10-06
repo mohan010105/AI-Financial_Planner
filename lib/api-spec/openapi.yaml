@@ -10,6 +10,12 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: foundation
+    description: Phase 1 module availability
+  - name: authentication
+    description: Account registration, login, and session management
+  - name: financial-profile
+    description: The signed-in user's financial profile
 paths:
   /healthz:
     get:
@@ -24,6 +30,205 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /auth/session:
+    get:
+      operationId: getAuthSession
+      tags: [authentication]
+      summary: Get the current user's session
+      responses:
+        "200":
+          description: Current session, or an unauthenticated session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthSession"
+  /auth/register:
+    post:
+      operationId: registerUser
+      tags: [authentication]
+      summary: Create an account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CredentialsInput"
+      responses:
+        "201":
+          description: Account created and signed in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthSession"
+        "400":
+          description: Invalid registration fields
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Account could not be created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /auth/login:
+    post:
+      operationId: loginUser
+      tags: [authentication]
+      summary: Sign in
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CredentialsInput"
+      responses:
+        "200":
+          description: Signed-in session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthSession"
+        "400":
+          description: Invalid login fields
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Invalid email or password
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /auth/logout:
+    post:
+      operationId: logoutUser
+      tags: [authentication]
+      summary: Sign out and invalidate the current session
+      responses:
+        "204":
+          description: Session ended
+  /profile:
+    get:
+      operationId: getFinancialProfile
+      tags: [financial-profile]
+      summary: Get the signed-in user's financial profile
+      responses:
+        "200":
+          description: Financial profile, or null when not created yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FinancialProfileEnvelope"
+        "401":
+          description: Sign-in required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      operationId: updateFinancialProfile
+      tags: [financial-profile]
+      summary: Create or update the signed-in user's financial profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FinancialProfileInput"
+      responses:
+        "200":
+          description: Saved financial profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FinancialProfileEnvelope"
+        "400":
+          description: Invalid financial profile fields
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Sign-in required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /profile/status:
+    get:
+      operationId: getProfileModuleStatus
+      tags: [foundation]
+      summary: Profile module availability
+      responses:
+        "200":
+          description: Phase 1 module availability status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProfileModuleStatus"
+  /transactions:
+    get:
+      operationId: getTransactionsStatus
+      tags: [foundation]
+      summary: Transactions module status
+      responses:
+        "200":
+          description: Phase 1 availability status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionsModuleStatus"
+  /analytics:
+    get:
+      operationId: getAnalyticsStatus
+      tags: [foundation]
+      summary: Analytics module status
+      responses:
+        "200":
+          description: Phase 1 availability status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnalyticsModuleStatus"
+  /goals:
+    get:
+      operationId: getGoalsStatus
+      tags: [foundation]
+      summary: Goals module status
+      responses:
+        "200":
+          description: Phase 1 availability status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GoalsModuleStatus"
+  /simulator:
+    get:
+      operationId: getSimulatorStatus
+      tags: [foundation]
+      summary: Simulator module status
+      responses:
+        "200":
+          description: Phase 1 availability status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SimulatorModuleStatus"
+  /assistant:
+    get:
+      operationId: getAssistantStatus
+      tags: [foundation]
+      summary: Assistant module status
+      responses:
+        "200":
+          description: Phase 1 availability status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AssistantModuleStatus"
 components:
   schemas:
     HealthStatus:
@@ -33,4 +238,194 @@ components:
           type: string
       required:
         - status
+    ProfileModuleStatus:
+      allOf:
+        - $ref: "#/components/schemas/ModuleStatus"
+        - type: object
+          properties:
+            module:
+              const: profile
+          required: [module]
+    TransactionsModuleStatus:
+      allOf:
+        - $ref: "#/components/schemas/ModuleStatus"
+        - type: object
+          properties:
+            module:
+              const: transactions
+          required: [module]
+    AnalyticsModuleStatus:
+      allOf:
+        - $ref: "#/components/schemas/ModuleStatus"
+        - type: object
+          properties:
+            module:
+              const: analytics
+          required: [module]
+    GoalsModuleStatus:
+      allOf:
+        - $ref: "#/components/schemas/ModuleStatus"
+        - type: object
+          properties:
+            module:
+              const: goals
+          required: [module]
+    SimulatorModuleStatus:
+      allOf:
+        - $ref: "#/components/schemas/ModuleStatus"
+        - type: object
+          properties:
+            module:
+              const: simulator
+          required: [module]
+    AssistantModuleStatus:
+      allOf:
+        - $ref: "#/components/schemas/ModuleStatus"
+        - type: object
+          properties:
+            module:
+              const: assistant
+          required: [module]
+    CredentialsInput:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 320
+        password:
+          type: string
+          minLength: 12
+          maxLength: 128
+      required: [email, password]
+    SessionUser:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        displayName:
+          type: [string, "null"]
+          maxLength: 120
+        hasFinancialProfile:
+          type: boolean
+      required: [id, email, displayName, hasFinancialProfile]
+    AuthSession:
+      type: object
+      properties:
+        authenticated:
+          type: boolean
+        user:
+          oneOf:
+            - $ref: "#/components/schemas/SessionUser"
+            - type: "null"
+      required: [authenticated, user]
+    FinancialProfileInput:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        ageRange:
+          type: string
+          enum: ["18-24", "25-34", "35-44", "45-54", "55-64", "65+"]
+        employmentStatus:
+          type: string
+          enum: [employed, self_employed, unemployed, student, retired, other]
+        currencyCode:
+          type: string
+          pattern: "^[A-Z]{3}$"
+        monthlyIncome:
+          type: number
+          minimum: 0
+          maximum: 100000000
+        existingSavings:
+          type: number
+          minimum: 0
+          maximum: 999999999999.99
+        monthlyFixedExpenses:
+          type: number
+          minimum: 0
+          maximum: 100000000
+        monthlyVariableExpenses:
+          type: number
+          minimum: 0
+          maximum: 100000000
+        monthlyLoanPayments:
+          type: number
+          description: Monthly payments for existing loans or EMIs; use zero when there are none.
+          minimum: 0
+          maximum: 100000000
+        emergencyFundAmount:
+          type: number
+          minimum: 0
+          maximum: 999999999999.99
+        primaryGoal:
+          type: string
+          enum:
+            - emergency_fund
+            - debt_repayment
+            - home_purchase
+            - education
+            - retirement
+            - long_term_savings
+            - other
+        planningHorizon:
+          type: string
+          enum: [under_1_year, 1_to_3_years, 3_to_5_years, 5_plus_years]
+      required:
+        - name
+        - ageRange
+        - employmentStatus
+        - currencyCode
+        - monthlyIncome
+        - existingSavings
+        - monthlyFixedExpenses
+        - monthlyVariableExpenses
+        - monthlyLoanPayments
+        - emergencyFundAmount
+        - primaryGoal
+        - planningHorizon
+    FinancialProfile:
+      allOf:
+        - $ref: "#/components/schemas/FinancialProfileInput"
+        - type: object
+          properties:
+            createdAt:
+              type: string
+              format: date-time
+            updatedAt:
+              type: string
+              format: date-time
+          required: [createdAt, updatedAt]
+    FinancialProfileEnvelope:
+      type: object
+      properties:
+        profile:
+          oneOf:
+            - $ref: "#/components/schemas/FinancialProfile"
+            - type: "null"
+      required: [profile]
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        code:
+          type: string
+      required: [error, code]
+    ModuleStatus:
+      type: object
+      properties:
+        phase:
+          type: integer
+          const: 1
+        status:
+          type: string
+          const: placeholder
+      required: [phase, status]
 

@@ -4,17 +4,17 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import {
   getGetAuthSessionQueryKey, useLoginUser, useRegisterUser, useGetProfileModuleStatus,
-  useGetTransactionsStatus, useGetGoalsStatus, useGetSimulatorStatus, useGetAssistantStatus,
+  useGetGoalsStatus, useGetSimulatorStatus, useGetAssistantStatus,
   type CredentialsInput,
 } from '@workspace/api-client-react';
 import {
-  getGetProfileModuleStatusQueryKey, getGetTransactionsStatusQueryKey, getGetGoalsStatusQueryKey,
+  getGetProfileModuleStatusQueryKey, getGetGoalsStatusQueryKey,
   getGetSimulatorStatusQueryKey, getGetAssistantStatusQueryKey,
 } from '@workspace/api-client-react';
 import { Button, Card, ErrorState, Input, Loading } from '@/components/ui-kit';
 import { Form } from '@/components/ui/form';
 
-type ModuleName = 'auth' | 'profile' | 'transactions' | 'goals' | 'simulator' | 'assistant';
+type ModuleName = 'auth' | 'profile' | 'goals' | 'simulator' | 'assistant';
 type StatusData = { module: string; phase: number; status: string } | undefined;
 type StatusProps = { data: StatusData; isLoading: boolean; isError: boolean; refetch: () => unknown };
 
@@ -29,7 +29,6 @@ function StatusPanel({ data, isLoading, isError, refetch }: StatusProps) {
 const moduleDetails: Record<ModuleName, { title: string; subtitle: string; eyebrow: string; description: string; icon: string }> = {
   auth: { title: 'A calmer place to see the whole picture.', subtitle: 'Welcome back', eyebrow: 'YOUR FINANCIAL WORKSPACE', description: 'A personal space to understand your money clearly and make decisions on your terms.', icon: 'Access' },
   profile: { title: 'Your details, when you’re ready.', subtitle: 'Profile', eyebrow: 'YOUR SPACE', description: 'Your financial profile is private to your account and can be updated at any time.', icon: 'Profile' },
-  transactions: { title: 'A clearer record of what moves.', subtitle: 'Transactions', eyebrow: 'MONEY IN MOTION', description: 'Transaction history and categorization are not connected in the Phase 1 foundation.', icon: 'Transactions' },
   goals: { title: 'Make room for what matters to you.', subtitle: 'Goals', eyebrow: 'YOUR PRIORITIES', description: 'Your financial goals will have a home here. No goal tracking or calculations are active yet.', icon: 'Goals' },
   simulator: { title: 'Explore possibilities at your pace.', subtitle: 'Simulator', eyebrow: 'THINK AHEAD', description: 'A planning canvas for future scenarios is on the roadmap. No calculations or recommendations are available.', icon: 'Simulator' },
   assistant: { title: 'A thoughtful companion for your questions.', subtitle: 'AI assistant', eyebrow: 'A DIFFERENT KIND OF CLARITY', description: 'The assistant experience is a future placeholder. AI responses and recommendations are not enabled.', icon: 'Assistant' },
@@ -47,10 +46,6 @@ function ModulePage({ module, data, isLoading, isError, refetch }: { module: Mod
   </div>;
 }
 
-export function TransactionsPage() {
-  const query = useGetTransactionsStatus({ query: { queryKey: getGetTransactionsStatusQueryKey() } });
-  return <ModulePage module="transactions" data={query.data} isLoading={query.isLoading} isError={query.isError} refetch={query.refetch} />;
-}
 export function GoalsPage() {
   const query = useGetGoalsStatus({ query: { queryKey: getGetGoalsStatusQueryKey() } });
   return <ModulePage module="goals" data={query.data} isLoading={query.isLoading} isError={query.isError} refetch={query.refetch} />;

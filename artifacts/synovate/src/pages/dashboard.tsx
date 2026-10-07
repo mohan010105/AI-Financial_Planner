@@ -1,67 +1,68 @@
-import { ArrowDownRight, ArrowUpRight, CircleHelp, Download, MoreHorizontal, TrendingUp } from 'lucide-react';
-import { Cell, CartesianGrid, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis, Bar, BarChart } from 'recharts';
-import { useGetAnalyticsStatus, useHealthCheck } from '@workspace/api-client-react';
-import { getGetAnalyticsStatusQueryKey, getHealthCheckQueryKey } from '@workspace/api-client-react';
+import { CircleHelp, Download, MoreHorizontal, TrendingUp } from 'lucide-react';
+import { Cell, CartesianGrid, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { getGetTransactionSummaryQueryKey, useGetTransactionSummary } from '@workspace/api-client-react';
 import { Card, ErrorState, Loading } from '@/components/ui-kit';
 
-const incomeExpenseData = [
-  { month: 'Oct', income: 6200, expenses: 4120 }, { month: 'Nov', income: 6480, expenses: 4380 },
-  { month: 'Dec', income: 6320, expenses: 4760 }, { month: 'Jan', income: 6750, expenses: 4290 },
-  { month: 'Feb', income: 6590, expenses: 4520 }, { month: 'Mar', income: 6840, expenses: 4410 },
-];
-const spendingData = [
-  { name: 'Home', value: 38, color: '#214b51' }, { name: 'Everyday', value: 24, color: '#4f9290' },
-  { name: 'Transport', value: 15, color: '#8fb8ad' }, { name: 'Food & dining', value: 13, color: '#c4a36b' },
-  { name: 'Other', value: 10, color: '#dce7e2' },
-];
-const savingsData = [
-  { month: 'Oct', amount: 12600 }, { month: 'Nov', amount: 13840 }, { month: 'Dec', amount: 14680 },
-  { month: 'Jan', amount: 16120 }, { month: 'Feb', amount: 17820 }, { month: 'Mar', amount: 19440 },
-];
-const currency = (value: number) => `$${value.toLocaleString('en-US')}`;
+const COLORS = ['#307b70', '#719b88', '#9eb7a6', '#c4a36b', '#7a9da0', '#657f76', '#b68e7b', '#9fabb0'];
 const tooltipStyle = { background: '#fff', border: '1px solid #e6ebe6', borderRadius: 10, boxShadow: '0 8px 22px rgba(20,50,55,.08)', fontFamily: 'DM Sans', fontSize: 12 };
+const formatCurrency = (value: number, currencyCode: string | null) => {
+  if (!currencyCode) return new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 }).format(value);
+  try {
+    return new Intl.NumberFormat(undefined, { style: 'currency', currency: currencyCode, maximumFractionDigits: 2 }).format(value);
+  } catch {
+    return new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 }).format(value);
+  }
+};
+const monthLabel = (value: string) => {
+  const [year, month] = value.split('-').map(Number);
+  return new Date(year, month - 1, 1).toLocaleDateString(undefined, { month: 'short', year: '2-digit' });
+};
 
-function DataNotice() {
-  const analytics = useGetAnalyticsStatus({ query: { queryKey: getGetAnalyticsStatusQueryKey() } });
-  const health = useHealthCheck({ query: { queryKey: getHealthCheckQueryKey() } });
-  if (analytics.isLoading || health.isLoading) return <div className="dashboard-status-loading"><Loading label="Loading service status" /></div>;
-  if (analytics.isError || health.isError) return <ErrorState onRetry={() => { void analytics.refetch(); void health.refetch(); }} />;
-  return <div className="demo-notice" data-testid="status-analytics"><span className="demo-dot" /><span><strong>Illustrative sample data</strong> · Real financial data is not connected</span><span className="notice-divider" /><span className="health-label" data-testid="status-health"><i className={health.data?.status?.toLowerCase() === 'ok' || health.data?.status?.toLowerCase() === 'healthy' ? 'health-dot' : 'health-dot health-dot-muted'} /> Service {health.data?.status ?? 'available'}</span><span className="notice-phase">ANALYTICS · PHASE {analytics.data?.phase ?? 1} · {analytics.data?.status ?? 'placeholder'}</span></div>;
-}
-
-function MetricCard({ title, value, detail, trend, tone, testId }: { title: string; value: string; detail: string; trend?: string; tone?: string; testId: string }) {
-  return <Card className="metric-card" data-testid={testId}><div className="metric-top"><span>{title}</span><span className="metric-more icon-button" aria-label={`${title} information`} title="Illustrative sample value"><CircleHelp size={15} /></span></div><strong className="metric-value" data-testid={`value-${testId}`}>{value}</strong><div className="metric-foot">{trend && <span className={`metric-trend ${tone ?? ''}`}>{tone === 'down' ? <ArrowDownRight size={14} /> : <ArrowUpRight size={14} />}{trend}</span>}<span>{detail}</span></div></Card>;
+function MetricCard({ title, value, detail, testId }: { title: string; value: string; detail: string; testId: string }) {
+  return <Card className="metric-card" data-testid={testId}><div className="metric-top"><span>{title}</span><span className="metric-more icon-button" aria-hidden="true"><CircleHelp size={15} /></span></div><strong className="metric-value" data-testid={`value-${testId}`}>{value}</strong><div className="metric-foot">{detail}</div></Card>;
 }
 
 export default function DashboardPage() {
-  return <div className="dashboard-page">
-    <div className="page-intro dashboard-intro"><div><div className="eyebrow">MONDAY, 18 MARCH 2025 <span className="eyebrow-line" /></div><h1>A clearer view of <em>your money.</em></h1><p>A considered overview of your monthly finances, all in one place.</p></div><button className="btn btn-outline btn-md export-button" data-testid="button-export" onClick={() => window.print()}><Download size={16} /> Export view</button></div>
-    <DataNotice />
-    <section className="metrics-grid" aria-label="Illustrative financial summary">
-      <MetricCard title="Monthly Income" value="$6,840" detail="Compared with last month" trend="+3.8%" testId="monthly-income" />
-      <MetricCard title="Monthly Expenses" value="$4,410" detail="Compared with last month" trend="−2.4%" tone="down" testId="monthly-expenses" />
-      <MetricCard title="Monthly Savings" value="$2,430" detail="This month · illustrative" trend="+8.6%" testId="monthly-savings" />
-      <MetricCard title="Savings Rate" value="35.5%" detail="Illustrative monthly rate" trend="+1.7 pts" testId="savings-rate" />
-      <MetricCard title="Active Goals" value="3" detail="Illustrative goal count" testId="active-goals" />
+  const summary = useGetTransactionSummary({ query: { queryKey: getGetTransactionSummaryQueryKey() } });
+  if (summary.isLoading) return <div className="dashboard-page"><div className="page-intro"><div><div className="eyebrow">YOUR FINANCIAL OVERVIEW <span className="eyebrow-line" /></div><h1>A clearer view of <em>your money.</em></h1><p>A considered overview of your finances, all in one place.</p></div></div><Loading label="Loading account summary" /></div>;
+  if (summary.isError || !summary.data) return <div className="dashboard-page"><div className="page-intro"><div><div className="eyebrow">YOUR FINANCIAL OVERVIEW <span className="eyebrow-line" /></div><h1>A clearer view of <em>your money.</em></h1><p>A considered overview of your finances, all in one place.</p></div></div><ErrorState onRetry={() => { void summary.refetch(); }} /></div>;
+  const data = summary.data;
+  const currency = (value: number) => formatCurrency(value, data.currencyCode);
+  const categories = data.currentMonthExpenseByCategory;
+  return <div className="dashboard-page page-enter">
+    <style>{`.dashboard-summary-grid{grid-template-columns:repeat(3,minmax(0,1fr))}@media(max-width:767px){.dashboard-summary-grid{grid-template-columns:1fr}}`}</style>
+    <div className="page-intro dashboard-intro"><div><div className="eyebrow">AS OF {new Date(`${data.asOfDate.slice(0, 10)}T12:00:00`).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' }).toUpperCase()} <span className="eyebrow-line" /></div><h1>A clearer view of <em>your money.</em></h1><p>A considered overview of your finances, all in one place.</p></div><button className="btn btn-outline btn-md export-button" data-testid="button-export" onClick={() => window.print()}><Download size={16} /> Export view</button></div>
+     <div className="demo-notice" data-testid="status-financial-data"><span className="demo-dot" /><span><strong>Your account data</strong> · Totals reflect recorded income and expenses</span><span className="notice-phase">PRIVATE · {data.currencyCode || 'NO CURRENCY SET'}</span></div>
+    <div style={{ margin: '3px 0 8px', color: '#7b8983', fontFamily: 'var(--app-font-mono)', fontSize: 9, letterSpacing: '.08em' }}>ALL TIME</div>
+    <section className="metrics-grid dashboard-summary-grid" aria-label="All-time transaction summary">
+      <MetricCard title="Total income" value={currency(data.totalIncome)} detail="Recorded income" testId="total-income" />
+      <MetricCard title="Total expenses" value={currency(data.totalExpenses)} detail="Recorded expenses" testId="total-expenses" />
+      <MetricCard title="Net cash flow" value={currency(data.netCashFlow)} detail="Income less expenses" testId="net-cash-flow" />
+    </section>
+    <div style={{ margin: '15px 0 8px', color: '#7b8983', fontFamily: 'var(--app-font-mono)', fontSize: 9, letterSpacing: '.08em' }}>CURRENT MONTH · {monthLabel(data.currentMonth).toUpperCase()}</div>
+    <section className="metrics-grid dashboard-summary-grid" aria-label="Current month transaction summary">
+      <MetricCard title="Monthly income" value={currency(data.currentMonthIncome)} detail="Income this month" testId="monthly-income" />
+      <MetricCard title="Monthly expenses" value={currency(data.currentMonthExpenses)} detail="Expenses this month" testId="monthly-expenses" />
+      <MetricCard title="Monthly net cash flow" value={currency(data.currentMonthNetCashFlow)} detail="Income less expenses" testId="monthly-net-cash-flow" />
     </section>
     <section className="chart-grid chart-grid-main">
       <Card className="chart-card income-chart">
-        <div className="chart-heading"><div><span className="chart-kicker">CASH FLOW</span><h2>Income vs expenses</h2><p>Month-by-month comparison · sample data</p></div><span className="chart-menu icon-button" aria-label="Illustrative chart" title="Illustrative sample chart"><MoreHorizontal size={19} /></span></div>
+        <div className="chart-heading"><div><span className="chart-kicker">CASH FLOW</span><h2>Income vs expenses</h2><p>Monthly totals from your transactions</p></div><span className="chart-menu icon-button" aria-hidden="true"><MoreHorizontal size={19} /></span></div>
         <div className="chart-legend-inline"><span><i className="legend-swatch income-swatch" /> Income</span><span><i className="legend-swatch expense-swatch" /> Expenses</span></div>
-        <div className="chart-area"><ResponsiveContainer width="100%" height="100%"><BarChart data={incomeExpenseData} barGap={6} margin={{ top: 4, right: 4, bottom: 0, left: -17 }}><CartesianGrid vertical={false} stroke="#e9eee9" strokeDasharray="3 5" /><XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: '#83908e', fontSize: 11 }} dy={10} /><YAxis axisLine={false} tickLine={false} tick={{ fill: '#83908e', fontSize: 10 }} tickFormatter={(v) => `$${v / 1000}k`} /><Tooltip formatter={(value) => currency(Number(value))} contentStyle={tooltipStyle} cursor={{ fill: '#f4f7f5' }} /><Bar dataKey="income" name="Income" fill="#307b70" radius={[4, 4, 0, 0]} maxBarSize={20} /><Bar dataKey="expenses" name="Expenses" fill="#b9d2c9" radius={[4, 4, 0, 0]} maxBarSize={20} /></BarChart></ResponsiveContainer></div>
+        {data.monthlyTrend.length ? <div className="chart-area"><ResponsiveContainer width="100%" height="100%" debounce={0}><LineChart data={data.monthlyTrend} margin={{ top: 7, right: 10, bottom: 0, left: -12 }}><CartesianGrid vertical={false} stroke="#e9eee9" strokeDasharray="3 5" /><XAxis dataKey="month" tickFormatter={monthLabel} axisLine={false} tickLine={false} tick={{ fill: '#83908e', fontSize: 10 }} dy={9} /><YAxis axisLine={false} tickLine={false} tick={{ fill: '#83908e', fontSize: 9 }} tickFormatter={(v) => new Intl.NumberFormat(undefined, { notation: 'compact', maximumFractionDigits: 1 }).format(v)} /><Tooltip formatter={(value) => currency(Number(value))} labelFormatter={(label) => monthLabel(String(label))} contentStyle={tooltipStyle} isAnimationActive={false} cursor={{ stroke: '#9eafa5', strokeDasharray: '3 3' }} /><Line dataKey="income" name="Income" type="monotone" stroke="#307b70" strokeWidth={2.3} dot={false} activeDot={{ r: 4 }} isAnimationActive={false} /><Line dataKey="expenses" name="Expenses" type="monotone" stroke="#b9d2c9" strokeWidth={2.3} dot={false} activeDot={{ r: 4 }} isAnimationActive={false} /></LineChart></ResponsiveContainer></div> : <div className="empty-state" style={{ padding: '30px 10px' }}><div className="empty-mark"><TrendingUp size={18} /></div><h3>No monthly history</h3><p>Transactions will shape this chart as they are recorded.</p></div>}
       </Card>
       <Card className="chart-card spending-chart">
-        <div className="chart-heading"><div><span className="chart-kicker">WHERE IT GOES</span><h2>Spending by category</h2><p>Illustrative monthly breakdown</p></div><span className="chart-menu icon-button" aria-label="Category chart information" title="Illustrative sample chart"><MoreHorizontal size={19} /></span></div>
-        <div className="donut-layout"><div className="donut-plot"><ResponsiveContainer width="100%" height="100%"><PieChart><Pie data={spendingData} dataKey="value" nameKey="name" innerRadius="66%" outerRadius="88%" paddingAngle={3} stroke="none">{spendingData.map((entry) => <Cell key={entry.name} fill={entry.color} />)}</Pie><Tooltip formatter={(value) => `${value}%`} contentStyle={tooltipStyle} /></PieChart></ResponsiveContainer><div className="donut-center"><strong>100%</strong><span>sample</span></div></div><div className="category-legend">{spendingData.map((item) => <div className="category-row" key={item.name}><span className="category-label"><i style={{ background: item.color }} />{item.name}</span><strong>{item.value}%</strong></div>)}</div></div>
+        <div className="chart-heading"><div><span className="chart-kicker">WHERE IT GOES</span><h2>Spending by category</h2><p>Current-month expense totals</p></div><span className="chart-menu icon-button" aria-hidden="true"><MoreHorizontal size={19} /></span></div>
+        {categories.length ? <div className="donut-layout"><div className="donut-plot"><ResponsiveContainer width="100%" height="100%" debounce={0}><PieChart><Pie data={categories} dataKey="amount" nameKey="category" cx="50%" cy="50%" innerRadius="62%" outerRadius="84%" paddingAngle={2} cornerRadius={2} stroke="none" isAnimationActive={false}>{categories.map((entry, index) => <Cell key={entry.category} fill={COLORS[index % COLORS.length]} />)}</Pie><Tooltip formatter={(value) => currency(Number(value))} contentStyle={tooltipStyle} isAnimationActive={false} /></PieChart></ResponsiveContainer><div className="donut-center"><strong style={{ fontSize: 15 }}>{currency(data.currentMonthExpenses)}</strong><span>this month</span></div></div><div className="category-legend">{categories.map((item, index) => <div className="category-row" key={item.category}><span className="category-label"><i style={{ background: COLORS[index % COLORS.length] }} />{item.category}</span><strong>{currency(item.amount)}</strong></div>)}</div></div> : <div className="empty-state" style={{ padding: '30px 10px' }}><div className="empty-mark"><TrendingUp size={18} /></div><h3>No expense categories</h3><p>Category totals appear here when current-month expenses are recorded.</p></div>}
       </Card>
     </section>
     <section className="chart-grid chart-grid-lower">
       <Card className="chart-card savings-chart">
-        <div className="chart-heading"><div><span className="chart-kicker">OVER TIME</span><h2>Savings trend</h2><p>Illustrative accumulated savings · six months</p></div><div className="trend-chip"><TrendingUp size={14} /> Sample trend</div></div>
-        <div className="chart-area trend-area"><ResponsiveContainer width="100%" height="100%"><LineChart data={savingsData} margin={{ top: 12, right: 8, bottom: 0, left: -14 }}><CartesianGrid vertical={false} stroke="#e9eee9" strokeDasharray="3 5" /><XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: '#83908e', fontSize: 11 }} dy={9} /><YAxis axisLine={false} tickLine={false} tick={{ fill: '#83908e', fontSize: 10 }} tickFormatter={(v) => `$${v / 1000}k`} /><Tooltip formatter={(value) => currency(Number(value))} contentStyle={tooltipStyle} /><Line type="monotone" dataKey="amount" name="Savings" stroke="#307b70" strokeWidth={2.5} dot={{ r: 3, fill: '#307b70', stroke: '#fff', strokeWidth: 2 }} activeDot={{ r: 5 }} /></LineChart></ResponsiveContainer></div>
+        <div className="chart-heading"><div><span className="chart-kicker">OVER TIME</span><h2>Monthly net cash flow</h2><p>Server-reported net movement by month</p></div><div className="trend-chip"><TrendingUp size={14} /> Monthly view</div></div>
+        {data.monthlyTrend.length ? <div className="chart-area trend-area"><ResponsiveContainer width="100%" height="100%" debounce={0}><LineChart data={data.monthlyTrend} margin={{ top: 12, right: 8, bottom: 0, left: -14 }}><CartesianGrid vertical={false} stroke="#e9eee9" strokeDasharray="3 5" /><XAxis dataKey="month" tickFormatter={monthLabel} axisLine={false} tickLine={false} tick={{ fill: '#83908e', fontSize: 10 }} dy={9} /><YAxis axisLine={false} tickLine={false} tick={{ fill: '#83908e', fontSize: 9 }} tickFormatter={(v) => new Intl.NumberFormat(undefined, { notation: 'compact', maximumFractionDigits: 1 }).format(v)} /><Tooltip formatter={(value) => currency(Number(value))} labelFormatter={(label) => monthLabel(String(label))} contentStyle={tooltipStyle} isAnimationActive={false} cursor={{ stroke: '#9eafa5', strokeDasharray: '3 3' }} /><Line type="monotone" dataKey="netCashFlow" name="Net cash flow" stroke="#307b70" strokeWidth={2.5} dot={false} activeDot={{ r: 4 }} isAnimationActive={false} /></LineChart></ResponsiveContainer></div> : <div className="empty-state" style={{ padding: '30px 10px' }}><div className="empty-mark"><TrendingUp size={18} /></div><h3>No trend available</h3><p>Monthly cash flow will appear when transaction history is available.</p></div>}
       </Card>
-      <Card className="insight-card"><div className="insight-icon"><TrendingUp size={19} /></div><span className="chart-kicker">A NOTE ON THIS VIEW</span><h2>Built for perspective,<br />not prescriptions.</h2><p>These sample figures show how your financial picture could be organized. SYNOVATE doesn’t make decisions for you.</p><div className="insight-rule" /><div className="insight-foot"><span>Illustrative only</span><span>PHASE 1</span></div></Card>
+      <Card className="insight-card"><div className="insight-icon"><TrendingUp size={19} /></div><span className="chart-kicker">A NOTE ON THIS VIEW</span><h2>Built for perspective,<br />not prescriptions.</h2><p>Your figures come from the transactions you recorded. SYNOVATE keeps the view clear and leaves decisions to you.</p><div className="insight-rule" /><div className="insight-foot"><span>Account totals</span><span>PRIVATE</span></div></Card>
     </section>
-    <div className="dashboard-footnote"><CircleHelp size={15} /><span>All figures and charts shown are illustrative sample data. No personal financial information is connected.</span></div>
+    <div className="dashboard-footnote"><CircleHelp size={15} /><span>Summary and chart values are supplied by your account data. All-time totals include recorded transactions through {data.asOfDate.slice(0, 10)}.</span></div>
   </div>;
 }

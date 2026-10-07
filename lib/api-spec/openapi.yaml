@@ -16,6 +16,8 @@ tags:
     description: Account registration, login, and session management
   - name: financial-profile
     description: The signed-in user's financial profile
+  - name: transactions
+    description: Account-owned income and expense records
 paths:
   /healthz:
     get:
@@ -171,16 +173,265 @@ paths:
                 $ref: "#/components/schemas/ProfileModuleStatus"
   /transactions:
     get:
-      operationId: getTransactionsStatus
-      tags: [foundation]
-      summary: Transactions module status
+      operationId: listTransactions
+      tags: [transactions]
+      summary: List the signed-in user's transactions
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+            maxLength: 100
+        - name: type
+          in: query
+          schema:
+            $ref: "#/components/schemas/TransactionType"
+        - name: category
+          in: query
+          schema:
+            $ref: "#/components/schemas/TransactionCategory"
+        - name: fromDate
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: toDate
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            enum: [transactionDate, amount, category, createdAt]
+            default: transactionDate
+        - name: sortOrder
+          in: query
+          schema:
+            type: string
+            enum: [ASC, DESC]
+            default: DESC
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
       responses:
         "200":
-          description: Phase 1 availability status
+          description: Paged transaction results
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/TransactionsModuleStatus"
+                $ref: "#/components/schemas/TransactionList"
+        "400":
+          description: Invalid transaction filters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Sign-in required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      operationId: createTransaction
+      tags: [transactions]
+      summary: Add a transaction for the signed-in user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransactionInput"
+      responses:
+        "201":
+          description: Transaction created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionEnvelope"
+        "400":
+          description: Invalid transaction fields
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Sign-in required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /transactions/summary:
+    get:
+      operationId: getTransactionSummary
+      tags: [transactions]
+      summary: Calculate transaction totals and monthly trends
+      responses:
+        "200":
+          description: Deterministic totals computed from stored transactions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionSummary"
+        "401":
+          description: Sign-in required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /transactions/{transactionId}:
+    put:
+      operationId: updateTransaction
+      tags: [transactions]
+      summary: Update one of the signed-in user's transactions
+      parameters:
+        - name: transactionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransactionInput"
+      responses:
+        "200":
+          description: Transaction updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionEnvelope"
+        "400":
+          description: Invalid transaction fields or ID
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Sign-in required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Transaction not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteTransaction
+      tags: [transactions]
+      summary: Delete one of the signed-in user's transactions
+      parameters:
+        - name: transactionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Transaction deleted
+        "400":
+          description: Invalid transaction ID
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Sign-in required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Transaction not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /transactions/import/preview:
+    post:
+      operationId: previewTransactionCsv
+      tags: [transactions]
+      summary: Validate and preview a CSV before importing it
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransactionCsvInput"
+      responses:
+        "200":
+          description: Parsed rows with row-level validation results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionCsvPreview"
+        "400":
+          description: Invalid CSV file or columns
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Sign-in required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /transactions/import:
+    post:
+      operationId: importTransactionCsv
+      tags: [transactions]
+      summary: Import a validated CSV as one atomic operation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransactionCsvInput"
+      responses:
+        "200":
+          description: All valid rows imported
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionCsvResult"
+        "400":
+          description: Invalid CSV file or columns
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Sign-in required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Import rejected because the CSV contains invalid rows
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionCsvPreview"
   /analytics:
     get:
       operationId: getAnalyticsStatus
@@ -410,6 +661,209 @@ components:
             - $ref: "#/components/schemas/FinancialProfile"
             - type: "null"
       required: [profile]
+    TransactionType:
+      type: string
+      enum: [INCOME, EXPENSE]
+    TransactionCategory:
+      type: string
+      enum:
+        - Salary
+        - Freelance
+        - Business
+        - Housing
+        - Food
+        - Transport
+        - Healthcare
+        - Education
+        - Shopping
+        - Entertainment
+        - Utilities
+        - EMI/Loans
+        - Subscriptions
+        - Other
+    TransactionInput:
+      type: object
+      properties:
+        type:
+          $ref: "#/components/schemas/TransactionType"
+        amount:
+          type: number
+          minimum: 0.01
+          maximum: 999999999999.99
+        category:
+          $ref: "#/components/schemas/TransactionCategory"
+        description:
+          type: string
+          maxLength: 500
+        transactionDate:
+          type: string
+          format: date
+        recurring:
+          type: boolean
+          default: false
+      required: [type, amount, category, transactionDate]
+    Transaction:
+      allOf:
+        - $ref: "#/components/schemas/TransactionInput"
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            createdAt:
+              type: string
+              format: date-time
+            updatedAt:
+              type: string
+              format: date-time
+          required: [id, createdAt, updatedAt]
+    TransactionEnvelope:
+      type: object
+      properties:
+        transaction:
+          $ref: "#/components/schemas/Transaction"
+      required: [transaction]
+    TransactionList:
+      type: object
+      properties:
+        transactions:
+          type: array
+          items:
+            $ref: "#/components/schemas/Transaction"
+        page:
+          type: integer
+        pageSize:
+          type: integer
+        total:
+          type: integer
+        totalPages:
+          type: integer
+      required: [transactions, page, pageSize, total, totalPages]
+    TransactionMonthSummary:
+      type: object
+      properties:
+        month:
+          type: string
+          pattern: "^\\d{4}-\\d{2}$"
+        income:
+          type: number
+        expenses:
+          type: number
+        netCashFlow:
+          type: number
+      required: [month, income, expenses, netCashFlow]
+    TransactionCategoryTotal:
+      type: object
+      properties:
+        category:
+          $ref: "#/components/schemas/TransactionCategory"
+        amount:
+          type: number
+      required: [category, amount]
+    TransactionSummary:
+      type: object
+      properties:
+        currencyCode:
+          type: [string, "null"]
+        asOfDate:
+          type: string
+          format: date
+        currentMonth:
+          type: string
+          pattern: "^\\d{4}-\\d{2}$"
+        totalIncome:
+          type: number
+        totalExpenses:
+          type: number
+        netCashFlow:
+          type: number
+        currentMonthIncome:
+          type: number
+        currentMonthExpenses:
+          type: number
+        currentMonthNetCashFlow:
+          type: number
+        monthlyTrend:
+          type: array
+          items:
+            $ref: "#/components/schemas/TransactionMonthSummary"
+        currentMonthExpenseByCategory:
+          type: array
+          items:
+            $ref: "#/components/schemas/TransactionCategoryTotal"
+      required:
+        - currencyCode
+        - asOfDate
+        - currentMonth
+        - totalIncome
+        - totalExpenses
+        - netCashFlow
+        - currentMonthIncome
+        - currentMonthExpenses
+        - currentMonthNetCashFlow
+        - monthlyTrend
+        - currentMonthExpenseByCategory
+    TransactionCsvInput:
+      type: object
+      properties:
+        fileName:
+          type: string
+          minLength: 1
+          maxLength: 255
+        mimeType:
+          type: string
+          maxLength: 128
+        csvText:
+          type: string
+          minLength: 1
+          maxLength: 1000000
+      required: [fileName, csvText]
+    TransactionCsvValidRow:
+      type: object
+      properties:
+        rowNumber:
+          type: integer
+        transaction:
+          $ref: "#/components/schemas/TransactionInput"
+      required: [rowNumber, transaction]
+    TransactionCsvInvalidRow:
+      type: object
+      properties:
+        rowNumber:
+          type: integer
+        errors:
+          type: array
+          items:
+            type: string
+      required: [rowNumber, errors]
+    TransactionCsvPreview:
+      type: object
+      properties:
+        totalRows:
+          type: integer
+        acceptedRows:
+          type: integer
+        rejectedRows:
+          type: integer
+        canImport:
+          type: boolean
+        validRows:
+          type: array
+          items:
+            $ref: "#/components/schemas/TransactionCsvValidRow"
+        invalidRows:
+          type: array
+          items:
+            $ref: "#/components/schemas/TransactionCsvInvalidRow"
+      required: [totalRows, acceptedRows, rejectedRows, canImport, validRows, invalidRows]
+    TransactionCsvResult:
+      type: object
+      properties:
+        importedCount:
+          type: integer
+        totalRows:
+          type: integer
+      required: [importedCount, totalRows]
     ErrorResponse:
       type: object
       properties:

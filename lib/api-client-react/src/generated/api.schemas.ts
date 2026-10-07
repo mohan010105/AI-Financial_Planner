@@ -166,8 +166,176 @@ export interface FinancialProfileEnvelope {
   profile: FinancialProfile | null;
 }
 
+export type TransactionType = typeof TransactionType[keyof typeof TransactionType];
+
+
+export const TransactionType = {
+  INCOME: 'INCOME',
+  EXPENSE: 'EXPENSE',
+} as const;
+
+export type TransactionCategory = typeof TransactionCategory[keyof typeof TransactionCategory];
+
+
+export const TransactionCategory = {
+  Salary: 'Salary',
+  Freelance: 'Freelance',
+  Business: 'Business',
+  Housing: 'Housing',
+  Food: 'Food',
+  Transport: 'Transport',
+  Healthcare: 'Healthcare',
+  Education: 'Education',
+  Shopping: 'Shopping',
+  Entertainment: 'Entertainment',
+  Utilities: 'Utilities',
+  'EMI/Loans': 'EMI/Loans',
+  Subscriptions: 'Subscriptions',
+  Other: 'Other',
+} as const;
+
+export interface TransactionInput {
+  type: TransactionType;
+  /**
+     * @minimum 0.01
+     * @maximum 999999999999.99
+     */
+  amount: number;
+  category: TransactionCategory;
+  /** @maxLength 500 */
+  description?: string;
+  transactionDate: string;
+  recurring?: boolean;
+}
+
+export type Transaction = TransactionInput & {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export interface TransactionEnvelope {
+  transaction: Transaction;
+}
+
+export interface TransactionList {
+  transactions: Transaction[];
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
+}
+
+export interface TransactionMonthSummary {
+  /** @pattern ^\d{4}-\d{2}$ */
+  month: string;
+  income: number;
+  expenses: number;
+  netCashFlow: number;
+}
+
+export interface TransactionCategoryTotal {
+  category: TransactionCategory;
+  amount: number;
+}
+
+export interface TransactionSummary {
+  /** @nullable */
+  currencyCode: string | null;
+  asOfDate: string;
+  /** @pattern ^\d{4}-\d{2}$ */
+  currentMonth: string;
+  totalIncome: number;
+  totalExpenses: number;
+  netCashFlow: number;
+  currentMonthIncome: number;
+  currentMonthExpenses: number;
+  currentMonthNetCashFlow: number;
+  monthlyTrend: TransactionMonthSummary[];
+  currentMonthExpenseByCategory: TransactionCategoryTotal[];
+}
+
+export interface TransactionCsvInput {
+  /**
+     * @minLength 1
+     * @maxLength 255
+     */
+  fileName: string;
+  /** @maxLength 128 */
+  mimeType?: string;
+  /**
+     * @minLength 1
+     * @maxLength 1000000
+     */
+  csvText: string;
+}
+
+export interface TransactionCsvValidRow {
+  rowNumber: number;
+  transaction: TransactionInput;
+}
+
+export interface TransactionCsvInvalidRow {
+  rowNumber: number;
+  errors: string[];
+}
+
+export interface TransactionCsvPreview {
+  totalRows: number;
+  acceptedRows: number;
+  rejectedRows: number;
+  canImport: boolean;
+  validRows: TransactionCsvValidRow[];
+  invalidRows: TransactionCsvInvalidRow[];
+}
+
+export interface TransactionCsvResult {
+  importedCount: number;
+  totalRows: number;
+}
+
 export interface ErrorResponse {
   error: string;
   code: string;
 }
+
+export type ListTransactionsParams = {
+/**
+ * @maxLength 100
+ */
+search?: string;
+type?: TransactionType;
+category?: TransactionCategory;
+fromDate?: string;
+toDate?: string;
+sortBy?: ListTransactionsSortBy;
+sortOrder?: ListTransactionsSortOrder;
+/**
+ * @minimum 1
+ */
+page?: number;
+/**
+ * @minimum 1
+ * @maximum 100
+ */
+pageSize?: number;
+};
+
+export type ListTransactionsSortBy = typeof ListTransactionsSortBy[keyof typeof ListTransactionsSortBy];
+
+
+export const ListTransactionsSortBy = {
+  transactionDate: 'transactionDate',
+  amount: 'amount',
+  category: 'category',
+  createdAt: 'createdAt',
+} as const;
+
+export type ListTransactionsSortOrder = typeof ListTransactionsSortOrder[keyof typeof ListTransactionsSortOrder];
+
+
+export const ListTransactionsSortOrder = {
+  ASC: 'ASC',
+  DESC: 'DESC',
+} as const;
 

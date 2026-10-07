@@ -245,14 +245,254 @@ export const GetProfileModuleStatusResponse = zod.object({
 
 
 /**
- * @summary Transactions module status
+ * @summary List the signed-in user's transactions
  */
-export const GetTransactionsStatusResponse = zod.object({
-  "phase": zod.literal(1),
-  "status": zod.literal("placeholder")
+export const listTransactionsQuerySearchMax = 100;
+
+export const listTransactionsQuerySortByDefault = `transactionDate`;
+export const listTransactionsQuerySortOrderDefault = `DESC`;
+export const listTransactionsQueryPageDefault = 1;
+
+export const listTransactionsQueryPageSizeDefault = 20;
+export const listTransactionsQueryPageSizeMax = 100;
+
+
+
+export const ListTransactionsQueryParams = zod.object({
+  "search": zod.coerce.string().max(listTransactionsQuerySearchMax).optional(),
+  "type": zod.enum(['INCOME', 'EXPENSE']).optional(),
+  "category": zod.enum(['Salary', 'Freelance', 'Business', 'Housing', 'Food', 'Transport', 'Healthcare', 'Education', 'Shopping', 'Entertainment', 'Utilities', 'EMI/Loans', 'Subscriptions', 'Other']).optional(),
+  "fromDate": zod.date().optional(),
+  "toDate": zod.date().optional(),
+  "sortBy": zod.enum(['transactionDate', 'amount', 'category', 'createdAt']).default(listTransactionsQuerySortByDefault),
+  "sortOrder": zod.enum(['ASC', 'DESC']).default(listTransactionsQuerySortOrderDefault),
+  "page": zod.coerce.number().int().min(1).default(listTransactionsQueryPageDefault),
+  "pageSize": zod.coerce.number().int().min(1).max(listTransactionsQueryPageSizeMax).default(listTransactionsQueryPageSizeDefault)
+})
+
+export const listTransactionsResponseTransactionsItemOneAmountMin = 0.01;
+export const listTransactionsResponseTransactionsItemOneAmountMax = 999999999999.99;
+
+export const listTransactionsResponseTransactionsItemOneDescriptionMax = 500;
+
+export const listTransactionsResponseTransactionsItemOneRecurringDefault = false;
+
+export const ListTransactionsResponse = zod.object({
+  "transactions": zod.array(zod.object({
+  "type": zod.enum(['INCOME', 'EXPENSE']),
+  "amount": zod.number().min(listTransactionsResponseTransactionsItemOneAmountMin).max(listTransactionsResponseTransactionsItemOneAmountMax),
+  "category": zod.enum(['Salary', 'Freelance', 'Business', 'Housing', 'Food', 'Transport', 'Healthcare', 'Education', 'Shopping', 'Entertainment', 'Utilities', 'EMI/Loans', 'Subscriptions', 'Other']),
+  "description": zod.string().max(listTransactionsResponseTransactionsItemOneDescriptionMax).optional(),
+  "transactionDate": zod.coerce.date(),
+  "recurring": zod.boolean().default(listTransactionsResponseTransactionsItemOneRecurringDefault)
 }).and(zod.object({
-  "module": zod.literal("transactions")
+  "id": zod.string().uuid(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+}))),
+  "page": zod.number().int(),
+  "pageSize": zod.number().int(),
+  "total": zod.number().int(),
+  "totalPages": zod.number().int()
+})
+
+
+/**
+ * @summary Add a transaction for the signed-in user
+ */
+export const createTransactionBodyAmountMin = 0.01;
+export const createTransactionBodyAmountMax = 999999999999.99;
+
+export const createTransactionBodyDescriptionMax = 500;
+
+export const createTransactionBodyRecurringDefault = false;
+
+export const CreateTransactionBody = zod.object({
+  "type": zod.enum(['INCOME', 'EXPENSE']),
+  "amount": zod.number().min(createTransactionBodyAmountMin).max(createTransactionBodyAmountMax),
+  "category": zod.enum(['Salary', 'Freelance', 'Business', 'Housing', 'Food', 'Transport', 'Healthcare', 'Education', 'Shopping', 'Entertainment', 'Utilities', 'EMI/Loans', 'Subscriptions', 'Other']),
+  "description": zod.string().max(createTransactionBodyDescriptionMax).optional(),
+  "transactionDate": zod.coerce.date(),
+  "recurring": zod.boolean().default(createTransactionBodyRecurringDefault)
+})
+
+export const createTransactionResponseTransactionOneAmountMin = 0.01;
+export const createTransactionResponseTransactionOneAmountMax = 999999999999.99;
+
+export const createTransactionResponseTransactionOneDescriptionMax = 500;
+
+export const createTransactionResponseTransactionOneRecurringDefault = false;
+
+export const CreateTransactionResponse = zod.object({
+  "transaction": zod.object({
+  "type": zod.enum(['INCOME', 'EXPENSE']),
+  "amount": zod.number().min(createTransactionResponseTransactionOneAmountMin).max(createTransactionResponseTransactionOneAmountMax),
+  "category": zod.enum(['Salary', 'Freelance', 'Business', 'Housing', 'Food', 'Transport', 'Healthcare', 'Education', 'Shopping', 'Entertainment', 'Utilities', 'EMI/Loans', 'Subscriptions', 'Other']),
+  "description": zod.string().max(createTransactionResponseTransactionOneDescriptionMax).optional(),
+  "transactionDate": zod.coerce.date(),
+  "recurring": zod.boolean().default(createTransactionResponseTransactionOneRecurringDefault)
+}).and(zod.object({
+  "id": zod.string().uuid(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
 }))
+})
+
+
+/**
+ * @summary Calculate transaction totals and monthly trends
+ */
+export const getTransactionSummaryResponseCurrentMonthRegExp = new RegExp('^\\d{4}-\\d{2}$');
+export const getTransactionSummaryResponseMonthlyTrendItemMonthRegExp = new RegExp('^\\d{4}-\\d{2}$');
+
+
+export const GetTransactionSummaryResponse = zod.object({
+  "currencyCode": zod.string().nullable(),
+  "asOfDate": zod.coerce.date(),
+  "currentMonth": zod.string().regex(getTransactionSummaryResponseCurrentMonthRegExp),
+  "totalIncome": zod.number(),
+  "totalExpenses": zod.number(),
+  "netCashFlow": zod.number(),
+  "currentMonthIncome": zod.number(),
+  "currentMonthExpenses": zod.number(),
+  "currentMonthNetCashFlow": zod.number(),
+  "monthlyTrend": zod.array(zod.object({
+  "month": zod.string().regex(getTransactionSummaryResponseMonthlyTrendItemMonthRegExp),
+  "income": zod.number(),
+  "expenses": zod.number(),
+  "netCashFlow": zod.number()
+})),
+  "currentMonthExpenseByCategory": zod.array(zod.object({
+  "category": zod.enum(['Salary', 'Freelance', 'Business', 'Housing', 'Food', 'Transport', 'Healthcare', 'Education', 'Shopping', 'Entertainment', 'Utilities', 'EMI/Loans', 'Subscriptions', 'Other']),
+  "amount": zod.number()
+}))
+})
+
+
+/**
+ * @summary Update one of the signed-in user's transactions
+ */
+export const UpdateTransactionParams = zod.object({
+  "transactionId": zod.coerce.string().uuid()
+})
+
+export const updateTransactionBodyAmountMin = 0.01;
+export const updateTransactionBodyAmountMax = 999999999999.99;
+
+export const updateTransactionBodyDescriptionMax = 500;
+
+export const updateTransactionBodyRecurringDefault = false;
+
+export const UpdateTransactionBody = zod.object({
+  "type": zod.enum(['INCOME', 'EXPENSE']),
+  "amount": zod.number().min(updateTransactionBodyAmountMin).max(updateTransactionBodyAmountMax),
+  "category": zod.enum(['Salary', 'Freelance', 'Business', 'Housing', 'Food', 'Transport', 'Healthcare', 'Education', 'Shopping', 'Entertainment', 'Utilities', 'EMI/Loans', 'Subscriptions', 'Other']),
+  "description": zod.string().max(updateTransactionBodyDescriptionMax).optional(),
+  "transactionDate": zod.coerce.date(),
+  "recurring": zod.boolean().default(updateTransactionBodyRecurringDefault)
+})
+
+export const updateTransactionResponseTransactionOneAmountMin = 0.01;
+export const updateTransactionResponseTransactionOneAmountMax = 999999999999.99;
+
+export const updateTransactionResponseTransactionOneDescriptionMax = 500;
+
+export const updateTransactionResponseTransactionOneRecurringDefault = false;
+
+export const UpdateTransactionResponse = zod.object({
+  "transaction": zod.object({
+  "type": zod.enum(['INCOME', 'EXPENSE']),
+  "amount": zod.number().min(updateTransactionResponseTransactionOneAmountMin).max(updateTransactionResponseTransactionOneAmountMax),
+  "category": zod.enum(['Salary', 'Freelance', 'Business', 'Housing', 'Food', 'Transport', 'Healthcare', 'Education', 'Shopping', 'Entertainment', 'Utilities', 'EMI/Loans', 'Subscriptions', 'Other']),
+  "description": zod.string().max(updateTransactionResponseTransactionOneDescriptionMax).optional(),
+  "transactionDate": zod.coerce.date(),
+  "recurring": zod.boolean().default(updateTransactionResponseTransactionOneRecurringDefault)
+}).and(zod.object({
+  "id": zod.string().uuid(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+}))
+})
+
+
+/**
+ * @summary Delete one of the signed-in user's transactions
+ */
+export const DeleteTransactionParams = zod.object({
+  "transactionId": zod.coerce.string().uuid()
+})
+
+export const DeleteTransactionResponse = zod.void()
+
+
+/**
+ * @summary Validate and preview a CSV before importing it
+ */
+export const previewTransactionCsvBodyFileNameMax = 255;
+
+export const previewTransactionCsvBodyMimeTypeMax = 128;
+
+export const previewTransactionCsvBodyCsvTextMax = 1000000;
+
+
+
+export const PreviewTransactionCsvBody = zod.object({
+  "fileName": zod.string().min(1).max(previewTransactionCsvBodyFileNameMax),
+  "mimeType": zod.string().max(previewTransactionCsvBodyMimeTypeMax).optional(),
+  "csvText": zod.string().min(1).max(previewTransactionCsvBodyCsvTextMax)
+})
+
+export const previewTransactionCsvResponseValidRowsItemTransactionAmountMin = 0.01;
+export const previewTransactionCsvResponseValidRowsItemTransactionAmountMax = 999999999999.99;
+
+export const previewTransactionCsvResponseValidRowsItemTransactionDescriptionMax = 500;
+
+export const previewTransactionCsvResponseValidRowsItemTransactionRecurringDefault = false;
+
+export const PreviewTransactionCsvResponse = zod.object({
+  "totalRows": zod.number().int(),
+  "acceptedRows": zod.number().int(),
+  "rejectedRows": zod.number().int(),
+  "canImport": zod.boolean(),
+  "validRows": zod.array(zod.object({
+  "rowNumber": zod.number().int(),
+  "transaction": zod.object({
+  "type": zod.enum(['INCOME', 'EXPENSE']),
+  "amount": zod.number().min(previewTransactionCsvResponseValidRowsItemTransactionAmountMin).max(previewTransactionCsvResponseValidRowsItemTransactionAmountMax),
+  "category": zod.enum(['Salary', 'Freelance', 'Business', 'Housing', 'Food', 'Transport', 'Healthcare', 'Education', 'Shopping', 'Entertainment', 'Utilities', 'EMI/Loans', 'Subscriptions', 'Other']),
+  "description": zod.string().max(previewTransactionCsvResponseValidRowsItemTransactionDescriptionMax).optional(),
+  "transactionDate": zod.coerce.date(),
+  "recurring": zod.boolean().default(previewTransactionCsvResponseValidRowsItemTransactionRecurringDefault)
+})
+})),
+  "invalidRows": zod.array(zod.object({
+  "rowNumber": zod.number().int(),
+  "errors": zod.array(zod.string())
+}))
+})
+
+
+/**
+ * @summary Import a validated CSV as one atomic operation
+ */
+export const importTransactionCsvBodyFileNameMax = 255;
+
+export const importTransactionCsvBodyMimeTypeMax = 128;
+
+export const importTransactionCsvBodyCsvTextMax = 1000000;
+
+
+
+export const ImportTransactionCsvBody = zod.object({
+  "fileName": zod.string().min(1).max(importTransactionCsvBodyFileNameMax),
+  "mimeType": zod.string().max(importTransactionCsvBodyMimeTypeMax).optional(),
+  "csvText": zod.string().min(1).max(importTransactionCsvBodyCsvTextMax)
+})
+
+export const ImportTransactionCsvResponse = zod.object({
+  "importedCount": zod.number().int(),
+  "totalRows": zod.number().int()
+})
 
 
 /**

@@ -15,6 +15,13 @@
       "when": 1791310216630,
       "tag": "0001_robust_ironclad",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791342885814,
+      "tag": "0002_typical_jack_flag",
+      "breakpoints": true
     }
   ]
 }

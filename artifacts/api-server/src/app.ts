@@ -26,7 +26,7 @@ app.use(
     },
   }),
 );
-app.use(express.json({ limit: "32kb" }));
+app.use(express.json({ limit: "1.2mb" }));
 app.use((request, response, next) => {
   response.set("Cache-Control", "no-store, private");
   next();

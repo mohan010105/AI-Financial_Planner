@@ -21,6 +21,18 @@ function sendError(
   response.status(status).json({ error: message, code });
 }
 
+function getDatabaseErrorCode(error: unknown): string | undefined {
+  let current: unknown = error;
+  const visited = new Set<object>();
+  while (typeof current === "object" && current !== null && !visited.has(current)) {
+    visited.add(current);
+    const candidate = current as { code?: unknown; cause?: unknown };
+    if (typeof candidate.code === "string") return candidate.code;
+    current = candidate.cause;
+  }
+  return undefined;
+}
+
 async function authSession(userId: string) {
   const [user] = await db
     .select({
@@ -75,7 +87,7 @@ router.post("/auth/register", requireSameOrigin, async (request, response): Prom
       .returning({ id: usersTable.id });
     userId = user.id;
   } catch (error) {
-    if (typeof error === "object" && error !== null && "code" in error && error.code === "23505") {
+    if (getDatabaseErrorCode(error) === "23505") {
       sendError(response, 409, "An account could not be created with those details.", "ACCOUNT_UNAVAILABLE");
       return;
     }

@@ -5,7 +5,6 @@ import {
   GetGoalsStatusResponse,
   GetProfileModuleStatusResponse,
   GetSimulatorStatusResponse,
-  GetTransactionsStatusResponse,
 } from "@workspace/api-zod";
 
 const router: IRouter = Router();
@@ -20,7 +19,6 @@ function moduleStatus(
 }
 
 router.get("/profile/status", moduleStatus("profile", GetProfileModuleStatusResponse));
-router.get("/transactions", moduleStatus("transactions", GetTransactionsStatusResponse));
 router.get("/analytics", moduleStatus("analytics", GetAnalyticsStatusResponse));
 router.get("/goals", moduleStatus("goals", GetGoalsStatusResponse));
 router.get("/simulator", moduleStatus("simulator", GetSimulatorStatusResponse));

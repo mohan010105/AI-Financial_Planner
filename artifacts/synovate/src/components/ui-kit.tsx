@@ -28,6 +28,54 @@ export function Loading({ label = 'Loading status' }: { label?: string }) {
 export function Empty({ title, description }: { title: string; description: string }) {
   return <div className="empty-state" data-testid="empty-state"><div className="empty-mark"><ArrowUpRight size={20} /></div><h3>{title}</h3><p>{description}</p></div>;
 }
-export function ErrorState({ onRetry }: { onRetry: () => void }) {
-  return <div className="error-state" data-testid="error-state"><AlertCircle size={22} /><div><strong>We couldn’t load this status.</strong><p>Please check your connection and try again.</p></div><Button variant="outline" size="sm" onClick={onRetry} data-testid="button-retry"><RefreshCw size={14} /> Try again</Button></div>;
+export type ErrorStateProps = {
+  title?: string;
+  description?: string;
+  error?: unknown;
+  onRetry?: () => void;
+  className?: string;
+};
+
+export function ErrorState({ title, description, error, onRetry, className = '' }: ErrorStateProps) {
+  let resolvedTitle = title;
+  let resolvedDescription = description;
+
+  if (error) {
+    if (import.meta.env.DEV) {
+      console.warn('[SYNOVATE Diagnostics] Error state encountered:', error);
+    }
+    const errObj = typeof error === 'object' && error !== null ? (error as Record<string, unknown>) : null;
+    const status = errObj && 'status' in errObj ? Number(errObj.status) : 0;
+    const message = error instanceof Error ? error.message : String(errObj?.error ?? errObj?.message ?? error ?? '');
+
+    if (status === 401 || status === 403 || message.includes('401') || message.includes('403') || message.toLowerCase().includes('unauthenticated')) {
+      resolvedTitle = resolvedTitle ?? 'Session expired';
+      resolvedDescription = resolvedDescription ?? 'Your session is no longer active. Please sign in again.';
+    } else if (status >= 500 || message.includes('500') || message.toLowerCase().includes('failed')) {
+      resolvedTitle = resolvedTitle ?? 'Unable to complete request';
+      resolvedDescription = resolvedDescription ?? 'A server error occurred while processing this request. Please try again.';
+    } else if (message.toLowerCase().includes('network') || message.toLowerCase().includes('fetch') || message.toLowerCase().includes('failed to fetch')) {
+      resolvedTitle = resolvedTitle ?? 'Connection issue';
+      resolvedDescription = resolvedDescription ?? 'We couldn’t reach the server. Please check your internet connection and try again.';
+    }
+  }
+
+  resolvedTitle = resolvedTitle ?? 'We couldn’t load this data.';
+  resolvedDescription = resolvedDescription ?? 'Please check your connection and try again.';
+
+  return (
+    <div className={`error-state ${className}`} data-testid="error-state" role="alert">
+      <AlertCircle size={22} />
+      <div>
+        <strong>{resolvedTitle}</strong>
+        <p>{resolvedDescription}</p>
+      </div>
+      {onRetry && (
+        <Button variant="outline" size="sm" onClick={onRetry} data-testid="button-retry">
+          <RefreshCw size={14} /> Try again
+        </Button>
+      )}
+    </div>
+  );
 }
+

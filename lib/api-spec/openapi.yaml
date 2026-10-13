@@ -444,7 +444,67 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AnalyticsModuleStatus"
-  /goals:
+  /analytics/summary:
+    get:
+      operationId: getAnalyticsSummary
+      tags: [analytics]
+      summary: Overall and current month financial summary
+      responses:
+        "200":
+          description: Calculated summary metrics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnalyticsSummary"
+  /analytics/monthly:
+    get:
+      operationId: getAnalyticsMonthlyTrend
+      tags: [analytics]
+      summary: Monthly trend metrics for income, expenses, and savings
+      responses:
+        "200":
+          description: Monthly trend history
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnalyticsMonthlyTrend"
+  /analytics/categories:
+    get:
+      operationId: getAnalyticsCategoryBreakdown
+      tags: [analytics]
+      summary: Category expense breakdown and percentages
+      responses:
+        "200":
+          description: Expense categories breakdown
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnalyticsCategoryBreakdown"
+  /analytics/recurring:
+    get:
+      operationId: getAnalyticsRecurringSummary
+      tags: [analytics]
+      summary: Recurring income and expense transactions
+      responses:
+        "200":
+          description: Recurring items and metrics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnalyticsRecurringSummary"
+  /analytics/financial-health:
+    get:
+      operationId: getAnalyticsFinancialHealth
+      tags: [analytics]
+      summary: Transparent financial health metrics and indicators
+      responses:
+        "200":
+          description: Financial health indicators
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnalyticsFinancialHealth"
+  /goals/status:
     get:
       operationId: getGoalsStatus
       tags: [foundation]
@@ -456,6 +516,118 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/GoalsModuleStatus"
+  /goals/list:
+    get:
+      operationId: getGoals
+      tags: [goals]
+      summary: List user financial goals with calculated metrics
+      responses:
+        "200":
+          description: List of financial goals
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FinancialGoalsListResponse"
+  /goals:
+    post:
+      operationId: createGoal
+      tags: [goals]
+      summary: Create a financial goal
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GoalInput"
+      responses:
+        "201":
+          description: Goal created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FinancialGoal"
+  /goals/{goalId}:
+    get:
+      operationId: getGoal
+      tags: [goals]
+      summary: Get goal details and contributions
+      parameters:
+        - name: goalId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Goal detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FinancialGoalDetail"
+    put:
+      operationId: updateGoal
+      tags: [goals]
+      summary: Update a financial goal
+      parameters:
+        - name: goalId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GoalInput"
+      responses:
+        "200":
+          description: Goal updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FinancialGoal"
+    delete:
+      operationId: deleteGoal
+      tags: [goals]
+      summary: Delete a goal
+      parameters:
+        - name: goalId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Goal deleted
+  /goals/{goalId}/contributions:
+    post:
+      operationId: addGoalContribution
+      tags: [goals]
+      summary: Add a contribution to a goal
+      parameters:
+        - name: goalId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GoalContributionInput"
+      responses:
+        "201":
+          description: Contribution added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FinancialGoalDetail"
   /simulator:
     get:
       operationId: getSimulatorStatus
@@ -468,6 +640,24 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SimulatorModuleStatus"
+  /simulator/run:
+    post:
+      operationId: runSimulation
+      tags: [simulator]
+      summary: Run deterministic what-if financial scenario simulation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SimulatorInput"
+      responses:
+        "200":
+          description: Simulation comparison results and projected monthly timeline
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SimulatorResult"
   /assistant:
     get:
       operationId: getAssistantStatus
@@ -480,6 +670,24 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AssistantModuleStatus"
+  /assistant/chat:
+    post:
+      operationId: askAssistantChat
+      tags: [assistant]
+      summary: Ask AI financial planning assistant for verified explanations
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChatInput"
+      responses:
+        "200":
+          description: AI explanation based on verified backend context
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatResponse"
 components:
   schemas:
     HealthStatus:
@@ -882,4 +1090,487 @@ components:
           type: string
           const: placeholder
       required: [phase, status]
+
+    AnalyticsSummary:
+      type: object
+      properties:
+        currencyCode:
+          type: [string, "null"]
+        asOfDate:
+          type: string
+        currentMonth:
+          type: string
+        totalIncome:
+          type: number
+        totalExpenses:
+          type: number
+        totalSavings:
+          type: number
+        allTimeSavingsRate:
+          type: number
+        currentMonthIncome:
+          type: number
+        currentMonthExpenses:
+          type: number
+        currentMonthSavings:
+          type: number
+        currentMonthSavingsRate:
+          type: number
+      required:
+        - asOfDate
+        - currentMonth
+        - totalIncome
+        - totalExpenses
+        - totalSavings
+        - allTimeSavingsRate
+        - currentMonthIncome
+        - currentMonthExpenses
+        - currentMonthSavings
+        - currentMonthSavingsRate
+
+    AnalyticsMonthlyTrendItem:
+      type: object
+      properties:
+        month:
+          type: string
+        income:
+          type: number
+        expenses:
+          type: number
+        savings:
+          type: number
+        savingsRate:
+          type: number
+        netCashFlow:
+          type: number
+      required: [month, income, expenses, savings, savingsRate, netCashFlow]
+
+    AnalyticsMonthlyTrend:
+      type: object
+      properties:
+        currencyCode:
+          type: [string, "null"]
+        asOfDate:
+          type: string
+        months:
+          type: array
+          items:
+            $ref: "#/components/schemas/AnalyticsMonthlyTrendItem"
+      required: [asOfDate, months]
+
+    AnalyticsCategoryItem:
+      type: object
+      properties:
+        category:
+          $ref: "#/components/schemas/TransactionCategory"
+        amount:
+          type: number
+        percentage:
+          type: number
+      required: [category, amount, percentage]
+
+    AnalyticsCategoryBreakdown:
+      type: object
+      properties:
+        currencyCode:
+          type: [string, "null"]
+        asOfDate:
+          type: string
+        currentMonth:
+          type: string
+        totalCurrentMonthExpenses:
+          type: number
+        totalAllTimeExpenses:
+          type: number
+        currentMonthCategories:
+          type: array
+          items:
+            $ref: "#/components/schemas/AnalyticsCategoryItem"
+        allTimeCategories:
+          type: array
+          items:
+            $ref: "#/components/schemas/AnalyticsCategoryItem"
+      required: [asOfDate, currentMonth, totalCurrentMonthExpenses, totalAllTimeExpenses, currentMonthCategories, allTimeCategories]
+
+    AnalyticsRecurringSummary:
+      type: object
+      properties:
+        currencyCode:
+          type: [string, "null"]
+        asOfDate:
+          type: string
+        totalRecurringMonthlyIncome:
+          type: number
+        totalRecurringMonthlyExpenses:
+          type: number
+        recurringExpensesPercentage:
+          type: number
+        recurringItemCount:
+          type: integer
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Transaction"
+      required: [asOfDate, totalRecurringMonthlyIncome, totalRecurringMonthlyExpenses, recurringExpensesPercentage, recurringItemCount, items]
+
+    AnalyticsHealthMetrics:
+      type: object
+      properties:
+        savingsRate:
+          type: number
+        expenseToIncomeRatio:
+          type: number
+        emergencyFundCoverageMonths:
+          type: number
+        emergencyFundAmount:
+          type: number
+        monthlyFixedExpenses:
+          type: number
+        monthlyVariableExpenses:
+          type: number
+        essentialMonthlyExpenses:
+          type: number
+        primaryGoal:
+          type: [string, "null"]
+        planningHorizon:
+          type: [string, "null"]
+        hasFinancialProfile:
+          type: boolean
+      required: [savingsRate, expenseToIncomeRatio, emergencyFundCoverageMonths, emergencyFundAmount, monthlyFixedExpenses, monthlyVariableExpenses, essentialMonthlyExpenses, hasFinancialProfile]
+
+    AnalyticsHealthIndicator:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        valueText:
+          type: string
+        status:
+          type: string
+          enum: [HEALTHY, ATTENTION, NEUTRAL, INCOMPLETE]
+      required: [id, title, description, valueText, status]
+
+    AnalyticsFinancialHealth:
+      type: object
+      properties:
+        currencyCode:
+          type: [string, "null"]
+        asOfDate:
+          type: string
+        metrics:
+          $ref: "#/components/schemas/AnalyticsHealthMetrics"
+        indicators:
+          type: array
+          items:
+            $ref: "#/components/schemas/AnalyticsHealthIndicator"
+      required: [asOfDate, metrics, indicators]
+
+    GoalType:
+      type: string
+      enum:
+        - emergency_fund
+        - education
+        - travel
+        - major_purchase
+        - debt_reduction
+        - savings
+        - custom_goal
+
+    GoalPriority:
+      type: string
+      enum:
+        - low
+        - medium
+        - high
+        - critical
+
+    GoalInput:
+      type: object
+      properties:
+        name:
+          type: string
+        type:
+          $ref: "#/components/schemas/GoalType"
+        targetAmount:
+          type: number
+        currentAmount:
+          type: number
+        targetDate:
+          type: string
+        priority:
+          $ref: "#/components/schemas/GoalPriority"
+        notes:
+          type: string
+      required: [name, type, targetAmount, targetDate, priority]
+
+    GoalContributionInput:
+      type: object
+      properties:
+        amount:
+          type: number
+        contributionDate:
+          type: string
+        note:
+          type: string
+      required: [amount, contributionDate]
+
+    GoalContribution:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        goalId:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        amount:
+          type: number
+        contributionDate:
+          type: string
+        note:
+          type: string
+        createdAt:
+          type: string
+      required: [id, goalId, userId, amount, contributionDate, createdAt]
+
+    GoalMetrics:
+      type: object
+      properties:
+        targetAmount:
+          type: number
+        currentAmount:
+          type: number
+        remainingAmount:
+          type: number
+        progressPercentage:
+          type: number
+        monthsRemaining:
+          type: integer
+        requiredMonthlyContribution:
+          type: number
+        isCompleted:
+          type: boolean
+        isPastTargetDate:
+          type: boolean
+        needsAdjustment:
+          type: boolean
+        statusNote:
+          type: string
+        projectedCompletionDate:
+          type: [string, "null"]
+      required: [targetAmount, currentAmount, remainingAmount, progressPercentage, monthsRemaining, requiredMonthlyContribution, isCompleted, isPastTargetDate, needsAdjustment, statusNote]
+
+    FinancialGoal:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        type:
+          $ref: "#/components/schemas/GoalType"
+        targetAmount:
+          type: number
+        currentAmount:
+          type: number
+        targetDate:
+          type: string
+        priority:
+          $ref: "#/components/schemas/GoalPriority"
+        notes:
+          type: string
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+        metrics:
+          $ref: "#/components/schemas/GoalMetrics"
+      required: [id, userId, name, type, targetAmount, currentAmount, targetDate, priority, createdAt, updatedAt, metrics]
+
+    FinancialGoalDetail:
+      type: object
+      properties:
+        goal:
+          $ref: "#/components/schemas/FinancialGoal"
+        contributions:
+          type: array
+          items:
+            $ref: "#/components/schemas/GoalContribution"
+      required: [goal, contributions]
+
+    FinancialGoalsListSummary:
+      type: object
+      properties:
+        totalGoals:
+          type: integer
+        activeGoalsCount:
+          type: integer
+        completedGoalsCount:
+          type: integer
+        needsAdjustmentCount:
+          type: integer
+        totalTargetAmount:
+          type: number
+        totalCurrentAmount:
+          type: number
+        totalRemainingAmount:
+          type: number
+        overallProgressPercentage:
+          type: number
+      required: [totalGoals, activeGoalsCount, completedGoalsCount, needsAdjustmentCount, totalTargetAmount, totalCurrentAmount, totalRemainingAmount, overallProgressPercentage]
+
+    FinancialGoalsListResponse:
+      type: object
+      properties:
+        goals:
+          type: array
+          items:
+            $ref: "#/components/schemas/FinancialGoal"
+        overallSummary:
+          $ref: "#/components/schemas/FinancialGoalsListSummary"
+      required: [goals, overallSummary]
+
+    SimulatorInput:
+      type: object
+      properties:
+        baselineIncome:
+          type: number
+        baselineExpenses:
+          type: number
+        existingSavings:
+          type: number
+        goalTargetAmount:
+          type: number
+        goalCurrentAmount:
+          type: number
+        goalTargetDate:
+          type: string
+        goalId:
+          type: string
+          format: uuid
+        incomeAdjustment:
+          type: number
+        expenseAdjustment:
+          type: number
+        additionalMonthlySavings:
+          type: number
+        oneTimeExpense:
+          type: number
+        customTargetAmount:
+          type: number
+        customTargetDate:
+          type: string
+        projectionMonths:
+          type: integer
+
+    ScenarioResult:
+      type: object
+      properties:
+        monthlyIncome:
+          type: number
+        monthlyExpenses:
+          type: number
+        monthlySavings:
+          type: number
+        effectiveMonthlySavings:
+          type: number
+        startingSavings:
+          type: number
+        remainingGoalAmount:
+          type: number
+        monthsToGoal:
+          type: [integer, "null"]
+        projectedCompletionDate:
+          type: [string, "null"]
+        isUnreachable:
+          type: boolean
+        statusNote:
+          type: string
+      required: [monthlyIncome, monthlyExpenses, monthlySavings, effectiveMonthlySavings, startingSavings, remainingGoalAmount, monthsToGoal, isUnreachable, statusNote]
+
+    MonthlyProjectionPoint:
+      type: object
+      properties:
+        monthIndex:
+          type: integer
+        monthLabel:
+          type: string
+        baselineAccumulated:
+          type: number
+        simulatedAccumulated:
+          type: number
+      required: [monthIndex, monthLabel, baselineAccumulated, simulatedAccumulated]
+
+    SimulatorComparison:
+      type: object
+      properties:
+        monthlySavingsDifference:
+          type: number
+        monthsSaved:
+          type: [integer, "null"]
+        completionDateDifferenceDays:
+          type: [integer, "null"]
+        totalSavingsAtHorizonDifference:
+          type: number
+        summaryText:
+          type: string
+      required: [monthlySavingsDifference, monthsSaved, totalSavingsAtHorizonDifference, summaryText]
+
+    SimulatorResult:
+      type: object
+      properties:
+        baseline:
+          $ref: "#/components/schemas/ScenarioResult"
+        simulated:
+          $ref: "#/components/schemas/ScenarioResult"
+        comparison:
+          $ref: "#/components/schemas/SimulatorComparison"
+        monthlyTimeline:
+          type: array
+          items:
+            $ref: "#/components/schemas/MonthlyProjectionPoint"
+        asOfDate:
+          type: string
+      required: [baseline, simulated, comparison, monthlyTimeline, asOfDate]
+
+    ChatMessage:
+      type: object
+      properties:
+        role:
+          type: string
+          enum: [user, assistant, system]
+        content:
+          type: string
+      required: [role, content]
+
+    ChatInput:
+      type: object
+      properties:
+        message:
+          type: string
+        history:
+          type: array
+          items:
+            $ref: "#/components/schemas/ChatMessage"
+      required: [message]
+
+    ChatResponse:
+      type: object
+      properties:
+        reply:
+          type: string
+        timestamp:
+          type: string
+      required: [reply, timestamp]
 

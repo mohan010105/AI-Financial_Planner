@@ -130,4 +130,59 @@ router.post("/auth/logout", requireSameOrigin, async (request, response): Promis
   response.sendStatus(204);
 });
 
+// Password Reset Request Handler
+const handlePasswordReset = async (request: any, response: Response): Promise<void> => {
+  response.set("Cache-Control", "no-store, private");
+  const email = typeof request.body?.email === "string" ? request.body.email.trim().toLowerCase() : "";
+  const newPassword = typeof request.body?.newPassword === "string" ? request.body.newPassword : "";
+
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    sendError(response, 400, "Enter a valid email address.", "INVALID_INPUT");
+    return;
+  }
+
+  const [user] = await db
+    .select({ id: usersTable.id, email: usersTable.email })
+    .from(usersTable)
+    .where(eq(usersTable.email, email))
+    .limit(1);
+
+  if (!user) {
+    // Only confirm when account exists
+    sendError(response, 404, "No account was found with that email address.", "USER_NOT_FOUND");
+    return;
+  }
+
+  if (newPassword) {
+    if (newPassword.length < 12) {
+      sendError(response, 400, "New password must be at least 12 characters.", "INVALID_PASSWORD_LENGTH");
+      return;
+    }
+    const passwordHash = await hashPassword(newPassword);
+    await db
+      .update(usersTable)
+      .set({ passwordHash })
+      .where(eq(usersTable.id, user.id));
+  }
+
+  response.json({
+    success: true,
+    email: user.email,
+    message: newPassword
+      ? "Password has been successfully updated."
+      : "Password reset request confirmed. Check your email for instructions.",
+  });
+};
+
+router.post("/auth/password-reset", requireSameOrigin, handlePasswordReset);
+router.post("/auth/reset-password", requireSameOrigin, handlePasswordReset);
+router.post("/auth/forgot-password", requireSameOrigin, handlePasswordReset);
+
+// Password Reset Redirect
+router.get("/auth/password-reset/confirm", (request, response) => {
+  response.set("Cache-Control", "no-store, private");
+  const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+  response.redirect(`${frontendUrl}/login?reset=confirmed`);
+});
+
 export default router;

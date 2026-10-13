@@ -6,8 +6,15 @@ import { AppLayout } from '@/components/app-layout';
 import { getGetAuthSessionQueryKey, useGetAuthSession } from '@workspace/api-client-react';
 import { ErrorState, Loading } from '@/components/ui-kit';
 import DashboardPage from '@/pages/dashboard';
+import FinancialInsightsPage from '@/pages/financial-insights';
 import TransactionsPage from '@/pages/transactions';
-import { AssistantPage, GoalsPage, LoginPage, RegisterPage, SettingsPage, SimulatorPage } from '@/pages/placeholders';
+import GoalsPage from '@/pages/goals';
+import SimulatorPage from '@/pages/simulator';
+import AssistantPage from '@/pages/assistant';
+import ActionPlanPage from '@/pages/actions';
+import PricingPage from '@/pages/pricing';
+import SubscriptionSettingsPage from '@/pages/subscription';
+import { LoginPage, RegisterPage, SettingsPage } from '@/pages/placeholders';
 import FinancialProfilePage from '@/pages/financial-profile';
 import NotFound from '@/pages/not-found';
 import { Redirect, Route, Switch, useLocation, Router as WouterRouter } from 'wouter';
@@ -42,10 +49,16 @@ function Router() {
     <Route path="/login" component={LoginPage} />
     <Route path="/register" component={RegisterPage} />
     <Route path="/profile" component={FinancialProfilePage} />
+    <Route path="/insights" component={FinancialInsightsPage} />
     <Route path="/transactions" component={TransactionsPage} />
     <Route path="/goals" component={GoalsPage} />
     <Route path="/simulator" component={SimulatorPage} />
     <Route path="/assistant" component={AssistantPage} />
+    <Route path="/actions" component={ActionPlanPage} />
+    <Route path="/action-plan" component={ActionPlanPage} />
+    <Route path="/pricing" component={PricingPage} />
+    <Route path="/settings/subscription" component={SubscriptionSettingsPage} />
+    <Route path="/subscription" component={SubscriptionSettingsPage} />
     <Route path="/settings" component={SettingsPage} />
     <Route component={NotFound} />
   </Switch></AppLayout></RoutedErrorBoundary>;

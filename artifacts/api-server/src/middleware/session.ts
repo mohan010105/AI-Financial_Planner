@@ -9,7 +9,10 @@ const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 7;
 function getSessionSecret(): string {
   const secret = process.env.SESSION_SECRET;
   if (!secret) {
-    throw new Error("SESSION_SECRET must be configured for account sessions.");
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("SESSION_SECRET must be configured for account sessions in production.");
+    }
+    return "dev-secret-synovate-key-change-in-production-32bytes";
   }
   return secret;
 }

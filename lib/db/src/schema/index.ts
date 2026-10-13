@@ -21,3 +21,5 @@ export * from "./user-profiles";
 export * from "./financial-profiles";
 export * from "./sessions";
 export * from "./transactions";
+export * from "./financial-goals";
+export * from "./billing";

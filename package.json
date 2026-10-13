@@ -3,14 +3,20 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
-    "preinstall": "sh -c 'rm -f package-lock.json yarn.lock; case \"$npm_config_user_agent\" in pnpm/*) ;; *) echo \"Use pnpm instead\" >&2; exit 1 ;; esac'",
+    "dev": "pnpm -r --parallel --filter @workspace/api-server --filter @workspace/synovate run dev",
+    "dev:backend": "pnpm --filter @workspace/api-server run dev",
+    "dev:frontend": "pnpm --filter @workspace/synovate run dev",
     "build": "pnpm run typecheck && pnpm -r --if-present run build",
+    "start": "pnpm --filter @workspace/api-server run start",
     "typecheck:libs": "tsc --build",
     "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck"
   },
   "private": true,
   "dependencies": {
-    "@replit/connectors-sdk": "^0.4.3"
+    "@electric-sql/pglite": "^0.5.8",
+    "@replit/connectors-sdk": "^0.4.3",
+    "drizzle-orm": "catalog:",
+    "pg-mem": "^3.0.14"
   },
   "devDependencies": {
     "prettier": "^3.9.6",

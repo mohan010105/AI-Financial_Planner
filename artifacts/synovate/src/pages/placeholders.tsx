@@ -1,8 +1,10 @@
+import { useState } from 'react';
 import { useLocation, Link } from 'wouter';
 import { ArrowLeft, ArrowRight, LockKeyhole, Sparkles } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import {
+  customFetch,
   getGetAuthSessionQueryKey, useLoginUser, useRegisterUser, useGetProfileModuleStatus,
   useGetGoalsStatus, useGetSimulatorStatus, useGetAssistantStatus,
   type CredentialsInput,
@@ -73,6 +75,7 @@ type AuthFormValues = CredentialsInput & { confirmPassword: string };
 
 function AuthForm({ mode }: { mode: 'login' | 'register' }) {
   const register = mode === 'register';
+  const [demoQuickLoginPending, setDemoQuickLoginPending] = useState(false);
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
   const form = useForm<AuthFormValues>({
@@ -118,6 +121,30 @@ function AuthForm({ mode }: { mode: 'login' | 'register' }) {
           <Button className="auth-submit" type="submit" disabled={busy} data-testid={`button-${mode}`}>{busy ? 'Please wait…' : register ? 'Create account' : 'Continue'} {!busy && <ArrowRight size={16} />}</Button>
         </form>
       </Form>
+      <div className="demo-login-divider">
+        <span>OR EVALUATE LIVE DEMO</span>
+      </div>
+
+      <button
+        type="button"
+        className="btn-quick-demo-login"
+        disabled={demoQuickLoginPending}
+        onClick={async () => {
+          setDemoQuickLoginPending(true);
+          try {
+            const res = await customFetch<{ authenticated: boolean; user: { hasFinancialProfile: boolean } }>('/api/demo/quick-login', { method: 'POST' });
+            queryClient.setQueryData(getGetAuthSessionQueryKey(), res);
+            setLocation('/dashboard');
+          } catch (err) {
+            console.error('Demo login failed', err);
+            setDemoQuickLoginPending(false);
+          }
+        }}
+      >
+        <Sparkles size={15} />
+        {demoQuickLoginPending ? 'Initializing Demo Workspace…' : 'Launch Live Demo (Pre-loaded with Synthetic Data)'}
+      </button>
+
       <p className="auth-disabled-note"><LockKeyhole size={13} /> Passwords are stored as one-way hashes; sessions stay on the server.</p>
       <div className="auth-switch">{register ? 'Already have a workspace?' : 'New to SYNOVATE?'} <Link href={register ? '/login' : '/register'} data-testid={`link-${register ? 'login' : 'register'}`}>{register ? 'Sign in' : 'Create an account'}</Link></div>
     </Card><p className="auth-copyright">© 2026 SYNOVATE · A clearer way forward.</p></div></div>;

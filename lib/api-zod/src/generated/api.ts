@@ -507,6 +507,123 @@ export const GetAnalyticsStatusResponse = zod.object({
 
 
 /**
+ * @summary Overall and current month financial summary
+ */
+export const GetAnalyticsSummaryResponse = zod.object({
+  "currencyCode": zod.string().nullish(),
+  "asOfDate": zod.string(),
+  "currentMonth": zod.string(),
+  "totalIncome": zod.number(),
+  "totalExpenses": zod.number(),
+  "totalSavings": zod.number(),
+  "allTimeSavingsRate": zod.number(),
+  "currentMonthIncome": zod.number(),
+  "currentMonthExpenses": zod.number(),
+  "currentMonthSavings": zod.number(),
+  "currentMonthSavingsRate": zod.number()
+})
+
+
+/**
+ * @summary Monthly trend metrics for income, expenses, and savings
+ */
+export const GetAnalyticsMonthlyTrendResponse = zod.object({
+  "currencyCode": zod.string().nullish(),
+  "asOfDate": zod.string(),
+  "months": zod.array(zod.object({
+  "month": zod.string(),
+  "income": zod.number(),
+  "expenses": zod.number(),
+  "savings": zod.number(),
+  "savingsRate": zod.number(),
+  "netCashFlow": zod.number()
+}))
+})
+
+
+/**
+ * @summary Category expense breakdown and percentages
+ */
+export const GetAnalyticsCategoryBreakdownResponse = zod.object({
+  "currencyCode": zod.string().nullish(),
+  "asOfDate": zod.string(),
+  "currentMonth": zod.string(),
+  "totalCurrentMonthExpenses": zod.number(),
+  "totalAllTimeExpenses": zod.number(),
+  "currentMonthCategories": zod.array(zod.object({
+  "category": zod.enum(['Salary', 'Freelance', 'Business', 'Housing', 'Food', 'Transport', 'Healthcare', 'Education', 'Shopping', 'Entertainment', 'Utilities', 'EMI/Loans', 'Subscriptions', 'Other']),
+  "amount": zod.number(),
+  "percentage": zod.number()
+})),
+  "allTimeCategories": zod.array(zod.object({
+  "category": zod.enum(['Salary', 'Freelance', 'Business', 'Housing', 'Food', 'Transport', 'Healthcare', 'Education', 'Shopping', 'Entertainment', 'Utilities', 'EMI/Loans', 'Subscriptions', 'Other']),
+  "amount": zod.number(),
+  "percentage": zod.number()
+}))
+})
+
+
+/**
+ * @summary Recurring income and expense transactions
+ */
+export const getAnalyticsRecurringSummaryResponseItemsItemOneAmountMin = 0.01;
+export const getAnalyticsRecurringSummaryResponseItemsItemOneAmountMax = 999999999999.99;
+
+export const getAnalyticsRecurringSummaryResponseItemsItemOneDescriptionMax = 500;
+
+export const getAnalyticsRecurringSummaryResponseItemsItemOneRecurringDefault = false;
+
+export const GetAnalyticsRecurringSummaryResponse = zod.object({
+  "currencyCode": zod.string().nullish(),
+  "asOfDate": zod.string(),
+  "totalRecurringMonthlyIncome": zod.number(),
+  "totalRecurringMonthlyExpenses": zod.number(),
+  "recurringExpensesPercentage": zod.number(),
+  "recurringItemCount": zod.number().int(),
+  "items": zod.array(zod.object({
+  "type": zod.enum(['INCOME', 'EXPENSE']),
+  "amount": zod.number().min(getAnalyticsRecurringSummaryResponseItemsItemOneAmountMin).max(getAnalyticsRecurringSummaryResponseItemsItemOneAmountMax),
+  "category": zod.enum(['Salary', 'Freelance', 'Business', 'Housing', 'Food', 'Transport', 'Healthcare', 'Education', 'Shopping', 'Entertainment', 'Utilities', 'EMI/Loans', 'Subscriptions', 'Other']),
+  "description": zod.string().max(getAnalyticsRecurringSummaryResponseItemsItemOneDescriptionMax).optional(),
+  "transactionDate": zod.coerce.date(),
+  "recurring": zod.boolean().default(getAnalyticsRecurringSummaryResponseItemsItemOneRecurringDefault)
+}).and(zod.object({
+  "id": zod.string().uuid(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})))
+})
+
+
+/**
+ * @summary Transparent financial health metrics and indicators
+ */
+export const GetAnalyticsFinancialHealthResponse = zod.object({
+  "currencyCode": zod.string().nullish(),
+  "asOfDate": zod.string(),
+  "metrics": zod.object({
+  "savingsRate": zod.number(),
+  "expenseToIncomeRatio": zod.number(),
+  "emergencyFundCoverageMonths": zod.number(),
+  "emergencyFundAmount": zod.number(),
+  "monthlyFixedExpenses": zod.number(),
+  "monthlyVariableExpenses": zod.number(),
+  "essentialMonthlyExpenses": zod.number(),
+  "primaryGoal": zod.string().nullish(),
+  "planningHorizon": zod.string().nullish(),
+  "hasFinancialProfile": zod.boolean()
+}),
+  "indicators": zod.array(zod.object({
+  "id": zod.string(),
+  "title": zod.string(),
+  "description": zod.string(),
+  "valueText": zod.string(),
+  "status": zod.enum(['HEALTHY', 'ATTENTION', 'NEUTRAL', 'INCOMPLETE'])
+}))
+})
+
+
+/**
  * @summary Goals module status
  */
 export const GetGoalsStatusResponse = zod.object({
@@ -515,6 +632,243 @@ export const GetGoalsStatusResponse = zod.object({
 }).and(zod.object({
   "module": zod.literal("goals")
 }))
+
+
+/**
+ * @summary List user financial goals with calculated metrics
+ */
+export const GetGoalsResponse = zod.object({
+  "goals": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "userId": zod.string().uuid(),
+  "name": zod.string(),
+  "type": zod.enum(['emergency_fund', 'education', 'travel', 'major_purchase', 'debt_reduction', 'savings', 'custom_goal']),
+  "targetAmount": zod.number(),
+  "currentAmount": zod.number(),
+  "targetDate": zod.string(),
+  "priority": zod.enum(['low', 'medium', 'high', 'critical']),
+  "notes": zod.string().optional(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string(),
+  "metrics": zod.object({
+  "targetAmount": zod.number(),
+  "currentAmount": zod.number(),
+  "remainingAmount": zod.number(),
+  "progressPercentage": zod.number(),
+  "monthsRemaining": zod.number().int(),
+  "requiredMonthlyContribution": zod.number(),
+  "isCompleted": zod.boolean(),
+  "isPastTargetDate": zod.boolean(),
+  "needsAdjustment": zod.boolean(),
+  "statusNote": zod.string(),
+  "projectedCompletionDate": zod.string().nullish()
+})
+})),
+  "overallSummary": zod.object({
+  "totalGoals": zod.number().int(),
+  "activeGoalsCount": zod.number().int(),
+  "completedGoalsCount": zod.number().int(),
+  "needsAdjustmentCount": zod.number().int(),
+  "totalTargetAmount": zod.number(),
+  "totalCurrentAmount": zod.number(),
+  "totalRemainingAmount": zod.number(),
+  "overallProgressPercentage": zod.number()
+})
+})
+
+
+/**
+ * @summary Create a financial goal
+ */
+export const CreateGoalBody = zod.object({
+  "name": zod.string(),
+  "type": zod.enum(['emergency_fund', 'education', 'travel', 'major_purchase', 'debt_reduction', 'savings', 'custom_goal']),
+  "targetAmount": zod.number(),
+  "currentAmount": zod.number().optional(),
+  "targetDate": zod.string(),
+  "priority": zod.enum(['low', 'medium', 'high', 'critical']),
+  "notes": zod.string().optional()
+})
+
+export const CreateGoalResponse = zod.object({
+  "id": zod.string().uuid(),
+  "userId": zod.string().uuid(),
+  "name": zod.string(),
+  "type": zod.enum(['emergency_fund', 'education', 'travel', 'major_purchase', 'debt_reduction', 'savings', 'custom_goal']),
+  "targetAmount": zod.number(),
+  "currentAmount": zod.number(),
+  "targetDate": zod.string(),
+  "priority": zod.enum(['low', 'medium', 'high', 'critical']),
+  "notes": zod.string().optional(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string(),
+  "metrics": zod.object({
+  "targetAmount": zod.number(),
+  "currentAmount": zod.number(),
+  "remainingAmount": zod.number(),
+  "progressPercentage": zod.number(),
+  "monthsRemaining": zod.number().int(),
+  "requiredMonthlyContribution": zod.number(),
+  "isCompleted": zod.boolean(),
+  "isPastTargetDate": zod.boolean(),
+  "needsAdjustment": zod.boolean(),
+  "statusNote": zod.string(),
+  "projectedCompletionDate": zod.string().nullish()
+})
+})
+
+
+/**
+ * @summary Get goal details and contributions
+ */
+export const GetGoalParams = zod.object({
+  "goalId": zod.coerce.string().uuid()
+})
+
+export const GetGoalResponse = zod.object({
+  "goal": zod.object({
+  "id": zod.string().uuid(),
+  "userId": zod.string().uuid(),
+  "name": zod.string(),
+  "type": zod.enum(['emergency_fund', 'education', 'travel', 'major_purchase', 'debt_reduction', 'savings', 'custom_goal']),
+  "targetAmount": zod.number(),
+  "currentAmount": zod.number(),
+  "targetDate": zod.string(),
+  "priority": zod.enum(['low', 'medium', 'high', 'critical']),
+  "notes": zod.string().optional(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string(),
+  "metrics": zod.object({
+  "targetAmount": zod.number(),
+  "currentAmount": zod.number(),
+  "remainingAmount": zod.number(),
+  "progressPercentage": zod.number(),
+  "monthsRemaining": zod.number().int(),
+  "requiredMonthlyContribution": zod.number(),
+  "isCompleted": zod.boolean(),
+  "isPastTargetDate": zod.boolean(),
+  "needsAdjustment": zod.boolean(),
+  "statusNote": zod.string(),
+  "projectedCompletionDate": zod.string().nullish()
+})
+}),
+  "contributions": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "goalId": zod.string().uuid(),
+  "userId": zod.string().uuid(),
+  "amount": zod.number(),
+  "contributionDate": zod.string(),
+  "note": zod.string().optional(),
+  "createdAt": zod.string()
+}))
+})
+
+
+/**
+ * @summary Update a financial goal
+ */
+export const UpdateGoalParams = zod.object({
+  "goalId": zod.coerce.string().uuid()
+})
+
+export const UpdateGoalBody = zod.object({
+  "name": zod.string(),
+  "type": zod.enum(['emergency_fund', 'education', 'travel', 'major_purchase', 'debt_reduction', 'savings', 'custom_goal']),
+  "targetAmount": zod.number(),
+  "currentAmount": zod.number().optional(),
+  "targetDate": zod.string(),
+  "priority": zod.enum(['low', 'medium', 'high', 'critical']),
+  "notes": zod.string().optional()
+})
+
+export const UpdateGoalResponse = zod.object({
+  "id": zod.string().uuid(),
+  "userId": zod.string().uuid(),
+  "name": zod.string(),
+  "type": zod.enum(['emergency_fund', 'education', 'travel', 'major_purchase', 'debt_reduction', 'savings', 'custom_goal']),
+  "targetAmount": zod.number(),
+  "currentAmount": zod.number(),
+  "targetDate": zod.string(),
+  "priority": zod.enum(['low', 'medium', 'high', 'critical']),
+  "notes": zod.string().optional(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string(),
+  "metrics": zod.object({
+  "targetAmount": zod.number(),
+  "currentAmount": zod.number(),
+  "remainingAmount": zod.number(),
+  "progressPercentage": zod.number(),
+  "monthsRemaining": zod.number().int(),
+  "requiredMonthlyContribution": zod.number(),
+  "isCompleted": zod.boolean(),
+  "isPastTargetDate": zod.boolean(),
+  "needsAdjustment": zod.boolean(),
+  "statusNote": zod.string(),
+  "projectedCompletionDate": zod.string().nullish()
+})
+})
+
+
+/**
+ * @summary Delete a goal
+ */
+export const DeleteGoalParams = zod.object({
+  "goalId": zod.coerce.string().uuid()
+})
+
+export const DeleteGoalResponse = zod.void()
+
+
+/**
+ * @summary Add a contribution to a goal
+ */
+export const AddGoalContributionParams = zod.object({
+  "goalId": zod.coerce.string().uuid()
+})
+
+export const AddGoalContributionBody = zod.object({
+  "amount": zod.number(),
+  "contributionDate": zod.string(),
+  "note": zod.string().optional()
+})
+
+export const AddGoalContributionResponse = zod.object({
+  "goal": zod.object({
+  "id": zod.string().uuid(),
+  "userId": zod.string().uuid(),
+  "name": zod.string(),
+  "type": zod.enum(['emergency_fund', 'education', 'travel', 'major_purchase', 'debt_reduction', 'savings', 'custom_goal']),
+  "targetAmount": zod.number(),
+  "currentAmount": zod.number(),
+  "targetDate": zod.string(),
+  "priority": zod.enum(['low', 'medium', 'high', 'critical']),
+  "notes": zod.string().optional(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string(),
+  "metrics": zod.object({
+  "targetAmount": zod.number(),
+  "currentAmount": zod.number(),
+  "remainingAmount": zod.number(),
+  "progressPercentage": zod.number(),
+  "monthsRemaining": zod.number().int(),
+  "requiredMonthlyContribution": zod.number(),
+  "isCompleted": zod.boolean(),
+  "isPastTargetDate": zod.boolean(),
+  "needsAdjustment": zod.boolean(),
+  "statusNote": zod.string(),
+  "projectedCompletionDate": zod.string().nullish()
+})
+}),
+  "contributions": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "goalId": zod.string().uuid(),
+  "userId": zod.string().uuid(),
+  "amount": zod.number(),
+  "contributionDate": zod.string(),
+  "note": zod.string().optional(),
+  "createdAt": zod.string()
+}))
+})
 
 
 /**
@@ -529,6 +883,68 @@ export const GetSimulatorStatusResponse = zod.object({
 
 
 /**
+ * @summary Run deterministic what-if financial scenario simulation
+ */
+export const RunSimulationBody = zod.object({
+  "baselineIncome": zod.number().optional(),
+  "baselineExpenses": zod.number().optional(),
+  "existingSavings": zod.number().optional(),
+  "goalTargetAmount": zod.number().optional(),
+  "goalCurrentAmount": zod.number().optional(),
+  "goalTargetDate": zod.string().optional(),
+  "goalId": zod.string().uuid().optional(),
+  "incomeAdjustment": zod.number().optional(),
+  "expenseAdjustment": zod.number().optional(),
+  "additionalMonthlySavings": zod.number().optional(),
+  "oneTimeExpense": zod.number().optional(),
+  "customTargetAmount": zod.number().optional(),
+  "customTargetDate": zod.string().optional(),
+  "projectionMonths": zod.number().int().optional()
+})
+
+export const RunSimulationResponse = zod.object({
+  "baseline": zod.object({
+  "monthlyIncome": zod.number(),
+  "monthlyExpenses": zod.number(),
+  "monthlySavings": zod.number(),
+  "effectiveMonthlySavings": zod.number(),
+  "startingSavings": zod.number(),
+  "remainingGoalAmount": zod.number(),
+  "monthsToGoal": zod.number().int().nullable(),
+  "projectedCompletionDate": zod.string().nullish(),
+  "isUnreachable": zod.boolean(),
+  "statusNote": zod.string()
+}),
+  "simulated": zod.object({
+  "monthlyIncome": zod.number(),
+  "monthlyExpenses": zod.number(),
+  "monthlySavings": zod.number(),
+  "effectiveMonthlySavings": zod.number(),
+  "startingSavings": zod.number(),
+  "remainingGoalAmount": zod.number(),
+  "monthsToGoal": zod.number().int().nullable(),
+  "projectedCompletionDate": zod.string().nullish(),
+  "isUnreachable": zod.boolean(),
+  "statusNote": zod.string()
+}),
+  "comparison": zod.object({
+  "monthlySavingsDifference": zod.number(),
+  "monthsSaved": zod.number().int().nullable(),
+  "completionDateDifferenceDays": zod.number().int().nullish(),
+  "totalSavingsAtHorizonDifference": zod.number(),
+  "summaryText": zod.string()
+}),
+  "monthlyTimeline": zod.array(zod.object({
+  "monthIndex": zod.number().int(),
+  "monthLabel": zod.string(),
+  "baselineAccumulated": zod.number(),
+  "simulatedAccumulated": zod.number()
+})),
+  "asOfDate": zod.string()
+})
+
+
+/**
  * @summary Assistant module status
  */
 export const GetAssistantStatusResponse = zod.object({
@@ -537,5 +953,22 @@ export const GetAssistantStatusResponse = zod.object({
 }).and(zod.object({
   "module": zod.literal("assistant")
 }))
+
+
+/**
+ * @summary Ask AI financial planning assistant for verified explanations
+ */
+export const AskAssistantChatBody = zod.object({
+  "message": zod.string(),
+  "history": zod.array(zod.object({
+  "role": zod.enum(['user', 'assistant', 'system']),
+  "content": zod.string()
+})).optional()
+})
+
+export const AskAssistantChatResponse = zod.object({
+  "reply": zod.string(),
+  "timestamp": zod.string()
+})
 
 

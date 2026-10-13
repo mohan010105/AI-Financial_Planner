@@ -299,6 +299,287 @@ export interface ErrorResponse {
   code: string;
 }
 
+export interface AnalyticsSummary {
+  /** @nullable */
+  currencyCode?: string | null;
+  asOfDate: string;
+  currentMonth: string;
+  totalIncome: number;
+  totalExpenses: number;
+  totalSavings: number;
+  allTimeSavingsRate: number;
+  currentMonthIncome: number;
+  currentMonthExpenses: number;
+  currentMonthSavings: number;
+  currentMonthSavingsRate: number;
+}
+
+export interface AnalyticsMonthlyTrendItem {
+  month: string;
+  income: number;
+  expenses: number;
+  savings: number;
+  savingsRate: number;
+  netCashFlow: number;
+}
+
+export interface AnalyticsMonthlyTrend {
+  /** @nullable */
+  currencyCode?: string | null;
+  asOfDate: string;
+  months: AnalyticsMonthlyTrendItem[];
+}
+
+export interface AnalyticsCategoryItem {
+  category: TransactionCategory;
+  amount: number;
+  percentage: number;
+}
+
+export interface AnalyticsCategoryBreakdown {
+  /** @nullable */
+  currencyCode?: string | null;
+  asOfDate: string;
+  currentMonth: string;
+  totalCurrentMonthExpenses: number;
+  totalAllTimeExpenses: number;
+  currentMonthCategories: AnalyticsCategoryItem[];
+  allTimeCategories: AnalyticsCategoryItem[];
+}
+
+export interface AnalyticsRecurringSummary {
+  /** @nullable */
+  currencyCode?: string | null;
+  asOfDate: string;
+  totalRecurringMonthlyIncome: number;
+  totalRecurringMonthlyExpenses: number;
+  recurringExpensesPercentage: number;
+  recurringItemCount: number;
+  items: Transaction[];
+}
+
+export interface AnalyticsHealthMetrics {
+  savingsRate: number;
+  expenseToIncomeRatio: number;
+  emergencyFundCoverageMonths: number;
+  emergencyFundAmount: number;
+  monthlyFixedExpenses: number;
+  monthlyVariableExpenses: number;
+  essentialMonthlyExpenses: number;
+  /** @nullable */
+  primaryGoal?: string | null;
+  /** @nullable */
+  planningHorizon?: string | null;
+  hasFinancialProfile: boolean;
+}
+
+export type AnalyticsHealthIndicatorStatus = typeof AnalyticsHealthIndicatorStatus[keyof typeof AnalyticsHealthIndicatorStatus];
+
+
+export const AnalyticsHealthIndicatorStatus = {
+  HEALTHY: 'HEALTHY',
+  ATTENTION: 'ATTENTION',
+  NEUTRAL: 'NEUTRAL',
+  INCOMPLETE: 'INCOMPLETE',
+} as const;
+
+export interface AnalyticsHealthIndicator {
+  id: string;
+  title: string;
+  description: string;
+  valueText: string;
+  status: AnalyticsHealthIndicatorStatus;
+}
+
+export interface AnalyticsFinancialHealth {
+  /** @nullable */
+  currencyCode?: string | null;
+  asOfDate: string;
+  metrics: AnalyticsHealthMetrics;
+  indicators: AnalyticsHealthIndicator[];
+}
+
+export type GoalType = typeof GoalType[keyof typeof GoalType];
+
+
+export const GoalType = {
+  emergency_fund: 'emergency_fund',
+  education: 'education',
+  travel: 'travel',
+  major_purchase: 'major_purchase',
+  debt_reduction: 'debt_reduction',
+  savings: 'savings',
+  custom_goal: 'custom_goal',
+} as const;
+
+export type GoalPriority = typeof GoalPriority[keyof typeof GoalPriority];
+
+
+export const GoalPriority = {
+  low: 'low',
+  medium: 'medium',
+  high: 'high',
+  critical: 'critical',
+} as const;
+
+export interface GoalInput {
+  name: string;
+  type: GoalType;
+  targetAmount: number;
+  currentAmount?: number;
+  targetDate: string;
+  priority: GoalPriority;
+  notes?: string;
+}
+
+export interface GoalContributionInput {
+  amount: number;
+  contributionDate: string;
+  note?: string;
+}
+
+export interface GoalContribution {
+  id: string;
+  goalId: string;
+  userId: string;
+  amount: number;
+  contributionDate: string;
+  note?: string;
+  createdAt: string;
+}
+
+export interface GoalMetrics {
+  targetAmount: number;
+  currentAmount: number;
+  remainingAmount: number;
+  progressPercentage: number;
+  monthsRemaining: number;
+  requiredMonthlyContribution: number;
+  isCompleted: boolean;
+  isPastTargetDate: boolean;
+  needsAdjustment: boolean;
+  statusNote: string;
+  /** @nullable */
+  projectedCompletionDate?: string | null;
+}
+
+export interface FinancialGoal {
+  id: string;
+  userId: string;
+  name: string;
+  type: GoalType;
+  targetAmount: number;
+  currentAmount: number;
+  targetDate: string;
+  priority: GoalPriority;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+  metrics: GoalMetrics;
+}
+
+export interface FinancialGoalDetail {
+  goal: FinancialGoal;
+  contributions: GoalContribution[];
+}
+
+export interface FinancialGoalsListSummary {
+  totalGoals: number;
+  activeGoalsCount: number;
+  completedGoalsCount: number;
+  needsAdjustmentCount: number;
+  totalTargetAmount: number;
+  totalCurrentAmount: number;
+  totalRemainingAmount: number;
+  overallProgressPercentage: number;
+}
+
+export interface FinancialGoalsListResponse {
+  goals: FinancialGoal[];
+  overallSummary: FinancialGoalsListSummary;
+}
+
+export interface SimulatorInput {
+  baselineIncome?: number;
+  baselineExpenses?: number;
+  existingSavings?: number;
+  goalTargetAmount?: number;
+  goalCurrentAmount?: number;
+  goalTargetDate?: string;
+  goalId?: string;
+  incomeAdjustment?: number;
+  expenseAdjustment?: number;
+  additionalMonthlySavings?: number;
+  oneTimeExpense?: number;
+  customTargetAmount?: number;
+  customTargetDate?: string;
+  projectionMonths?: number;
+}
+
+export interface ScenarioResult {
+  monthlyIncome: number;
+  monthlyExpenses: number;
+  monthlySavings: number;
+  effectiveMonthlySavings: number;
+  startingSavings: number;
+  remainingGoalAmount: number;
+  /** @nullable */
+  monthsToGoal: number | null;
+  /** @nullable */
+  projectedCompletionDate?: string | null;
+  isUnreachable: boolean;
+  statusNote: string;
+}
+
+export interface MonthlyProjectionPoint {
+  monthIndex: number;
+  monthLabel: string;
+  baselineAccumulated: number;
+  simulatedAccumulated: number;
+}
+
+export interface SimulatorComparison {
+  monthlySavingsDifference: number;
+  /** @nullable */
+  monthsSaved: number | null;
+  /** @nullable */
+  completionDateDifferenceDays?: number | null;
+  totalSavingsAtHorizonDifference: number;
+  summaryText: string;
+}
+
+export interface SimulatorResult {
+  baseline: ScenarioResult;
+  simulated: ScenarioResult;
+  comparison: SimulatorComparison;
+  monthlyTimeline: MonthlyProjectionPoint[];
+  asOfDate: string;
+}
+
+export type ChatMessageRole = typeof ChatMessageRole[keyof typeof ChatMessageRole];
+
+
+export const ChatMessageRole = {
+  user: 'user',
+  assistant: 'assistant',
+  system: 'system',
+} as const;
+
+export interface ChatMessage {
+  role: ChatMessageRole;
+  content: string;
+}
+
+export interface ChatInput {
+  message: string;
+  history?: ChatMessage[];
+}
+
+export interface ChatResponse {
+  reply: string;
+  timestamp: string;
+}
+
 export type ListTransactionsParams = {
 /**
  * @maxLength 100

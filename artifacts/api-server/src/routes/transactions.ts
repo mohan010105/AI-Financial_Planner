@@ -166,7 +166,7 @@ function parseCsv(fileName: string, mimeType: string, csvText: string):
     header: true,
     dynamicTyping: false,
     skipEmptyLines: "greedy",
-    transformHeader: (header) => header.trim().toLowerCase(),
+    transformHeader: (header) => header.trim().toLowerCase().replace(/[\s-]+/g, "_"),
   });
   const headers = parsed.meta.fields ?? [];
   const requiredHeaders = ["type", "amount", "category", "transaction_date"];
@@ -218,7 +218,7 @@ function parseCsv(fileName: string, mimeType: string, csvText: string):
     const type = rawType === "INCOME" || rawType === "EXPENSE" ? rawType : undefined;
     if (!type) errors.push("Type must be INCOME or EXPENSE.");
 
-    const amountText = (row.amount ?? "").trim();
+    const amountText = (row.amount ?? "").trim().replace(/^[\$₹€£\s]+/, "").replace(/,/g, "");
     const amount = Number(amountText);
     if (
       !/^\d+(?:\.\d{1,2})?$/.test(amountText) ||
@@ -484,7 +484,8 @@ router.get("/transactions/summary", requireAuthentication, async (request, respo
         amount: toNumber(row.amount),
       })),
     });
-  } catch {
+  } catch (err) {
+    request.log?.error({ err }, "Transaction totals calculation failed");
     sendError(response, 500, "Transaction totals could not be calculated.", "TRANSACTION_SUMMARY_FAILED");
   }
 });

@@ -20,18 +20,32 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AnalyticsCategoryBreakdown,
+  AnalyticsFinancialHealth,
   AnalyticsModuleStatus,
+  AnalyticsMonthlyTrend,
+  AnalyticsRecurringSummary,
+  AnalyticsSummary,
   AssistantModuleStatus,
   AuthSession,
+  ChatInput,
+  ChatResponse,
   CredentialsInput,
   ErrorResponse,
+  FinancialGoal,
+  FinancialGoalDetail,
+  FinancialGoalsListResponse,
   FinancialProfileEnvelope,
   FinancialProfileInput,
+  GoalContributionInput,
+  GoalInput,
   GoalsModuleStatus,
   HealthStatus,
   ListTransactionsParams,
   ProfileModuleStatus,
+  SimulatorInput,
   SimulatorModuleStatus,
+  SimulatorResult,
   TransactionCsvInput,
   TransactionCsvPreview,
   TransactionCsvResult,
@@ -1380,12 +1394,397 @@ export function useGetAnalyticsStatus<TData = Awaited<ReturnType<typeof getAnaly
 
 
 
+export const getGetAnalyticsSummaryUrl = () => {
+
+
+
+
+  return `/api/analytics/summary`
+}
+
+/**
+ * @summary Overall and current month financial summary
+ */
+export const getAnalyticsSummary = async ( options?: Parameters<typeof customFetch>[1]): Promise<AnalyticsSummary> => {
+
+  return customFetch<AnalyticsSummary>(getGetAnalyticsSummaryUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAnalyticsSummaryQueryKey = () => {
+    return [
+    `/api/analytics/summary`
+    ] as const;
+    }
+
+
+export const getGetAnalyticsSummaryQueryOptions = <TData = Awaited<ReturnType<typeof getAnalyticsSummary>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAnalyticsSummary>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAnalyticsSummaryQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAnalyticsSummary>>> = ({ signal }) => getAnalyticsSummary({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAnalyticsSummary>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAnalyticsSummaryQueryResult = NonNullable<Awaited<ReturnType<typeof getAnalyticsSummary>>>
+export type GetAnalyticsSummaryQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Overall and current month financial summary
+ */
+
+export function useGetAnalyticsSummary<TData = Awaited<ReturnType<typeof getAnalyticsSummary>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAnalyticsSummary>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetAnalyticsSummaryQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetAnalyticsMonthlyTrendUrl = () => {
+
+
+
+
+  return `/api/analytics/monthly`
+}
+
+/**
+ * @summary Monthly trend metrics for income, expenses, and savings
+ */
+export const getAnalyticsMonthlyTrend = async ( options?: Parameters<typeof customFetch>[1]): Promise<AnalyticsMonthlyTrend> => {
+
+  return customFetch<AnalyticsMonthlyTrend>(getGetAnalyticsMonthlyTrendUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAnalyticsMonthlyTrendQueryKey = () => {
+    return [
+    `/api/analytics/monthly`
+    ] as const;
+    }
+
+
+export const getGetAnalyticsMonthlyTrendQueryOptions = <TData = Awaited<ReturnType<typeof getAnalyticsMonthlyTrend>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAnalyticsMonthlyTrend>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAnalyticsMonthlyTrendQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAnalyticsMonthlyTrend>>> = ({ signal }) => getAnalyticsMonthlyTrend({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAnalyticsMonthlyTrend>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAnalyticsMonthlyTrendQueryResult = NonNullable<Awaited<ReturnType<typeof getAnalyticsMonthlyTrend>>>
+export type GetAnalyticsMonthlyTrendQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Monthly trend metrics for income, expenses, and savings
+ */
+
+export function useGetAnalyticsMonthlyTrend<TData = Awaited<ReturnType<typeof getAnalyticsMonthlyTrend>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAnalyticsMonthlyTrend>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetAnalyticsMonthlyTrendQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetAnalyticsCategoryBreakdownUrl = () => {
+
+
+
+
+  return `/api/analytics/categories`
+}
+
+/**
+ * @summary Category expense breakdown and percentages
+ */
+export const getAnalyticsCategoryBreakdown = async ( options?: Parameters<typeof customFetch>[1]): Promise<AnalyticsCategoryBreakdown> => {
+
+  return customFetch<AnalyticsCategoryBreakdown>(getGetAnalyticsCategoryBreakdownUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAnalyticsCategoryBreakdownQueryKey = () => {
+    return [
+    `/api/analytics/categories`
+    ] as const;
+    }
+
+
+export const getGetAnalyticsCategoryBreakdownQueryOptions = <TData = Awaited<ReturnType<typeof getAnalyticsCategoryBreakdown>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAnalyticsCategoryBreakdown>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAnalyticsCategoryBreakdownQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAnalyticsCategoryBreakdown>>> = ({ signal }) => getAnalyticsCategoryBreakdown({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAnalyticsCategoryBreakdown>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAnalyticsCategoryBreakdownQueryResult = NonNullable<Awaited<ReturnType<typeof getAnalyticsCategoryBreakdown>>>
+export type GetAnalyticsCategoryBreakdownQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Category expense breakdown and percentages
+ */
+
+export function useGetAnalyticsCategoryBreakdown<TData = Awaited<ReturnType<typeof getAnalyticsCategoryBreakdown>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAnalyticsCategoryBreakdown>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetAnalyticsCategoryBreakdownQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetAnalyticsRecurringSummaryUrl = () => {
+
+
+
+
+  return `/api/analytics/recurring`
+}
+
+/**
+ * @summary Recurring income and expense transactions
+ */
+export const getAnalyticsRecurringSummary = async ( options?: Parameters<typeof customFetch>[1]): Promise<AnalyticsRecurringSummary> => {
+
+  return customFetch<AnalyticsRecurringSummary>(getGetAnalyticsRecurringSummaryUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAnalyticsRecurringSummaryQueryKey = () => {
+    return [
+    `/api/analytics/recurring`
+    ] as const;
+    }
+
+
+export const getGetAnalyticsRecurringSummaryQueryOptions = <TData = Awaited<ReturnType<typeof getAnalyticsRecurringSummary>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAnalyticsRecurringSummary>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAnalyticsRecurringSummaryQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAnalyticsRecurringSummary>>> = ({ signal }) => getAnalyticsRecurringSummary({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAnalyticsRecurringSummary>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAnalyticsRecurringSummaryQueryResult = NonNullable<Awaited<ReturnType<typeof getAnalyticsRecurringSummary>>>
+export type GetAnalyticsRecurringSummaryQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Recurring income and expense transactions
+ */
+
+export function useGetAnalyticsRecurringSummary<TData = Awaited<ReturnType<typeof getAnalyticsRecurringSummary>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAnalyticsRecurringSummary>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetAnalyticsRecurringSummaryQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetAnalyticsFinancialHealthUrl = () => {
+
+
+
+
+  return `/api/analytics/financial-health`
+}
+
+/**
+ * @summary Transparent financial health metrics and indicators
+ */
+export const getAnalyticsFinancialHealth = async ( options?: Parameters<typeof customFetch>[1]): Promise<AnalyticsFinancialHealth> => {
+
+  return customFetch<AnalyticsFinancialHealth>(getGetAnalyticsFinancialHealthUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAnalyticsFinancialHealthQueryKey = () => {
+    return [
+    `/api/analytics/financial-health`
+    ] as const;
+    }
+
+
+export const getGetAnalyticsFinancialHealthQueryOptions = <TData = Awaited<ReturnType<typeof getAnalyticsFinancialHealth>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAnalyticsFinancialHealth>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAnalyticsFinancialHealthQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAnalyticsFinancialHealth>>> = ({ signal }) => getAnalyticsFinancialHealth({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAnalyticsFinancialHealth>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAnalyticsFinancialHealthQueryResult = NonNullable<Awaited<ReturnType<typeof getAnalyticsFinancialHealth>>>
+export type GetAnalyticsFinancialHealthQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Transparent financial health metrics and indicators
+ */
+
+export function useGetAnalyticsFinancialHealth<TData = Awaited<ReturnType<typeof getAnalyticsFinancialHealth>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAnalyticsFinancialHealth>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetAnalyticsFinancialHealthQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
 export const getGetGoalsStatusUrl = () => {
 
 
 
 
-  return `/api/goals`
+  return `/api/goals/status`
 }
 
 /**
@@ -1408,7 +1807,7 @@ export const getGoalsStatus = async ( options?: Parameters<typeof customFetch>[1
 
 export const getGetGoalsStatusQueryKey = () => {
     return [
-    `/api/goals`
+    `/api/goals/status`
     ] as const;
     }
 
@@ -1456,6 +1855,500 @@ export function useGetGoalsStatus<TData = Awaited<ReturnType<typeof getGoalsStat
 
 
 
+
+export const getGetGoalsUrl = () => {
+
+
+
+
+  return `/api/goals/list`
+}
+
+/**
+ * @summary List user financial goals with calculated metrics
+ */
+export const getGoals = async ( options?: Parameters<typeof customFetch>[1]): Promise<FinancialGoalsListResponse> => {
+
+  return customFetch<FinancialGoalsListResponse>(getGetGoalsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetGoalsQueryKey = () => {
+    return [
+    `/api/goals/list`
+    ] as const;
+    }
+
+
+export const getGetGoalsQueryOptions = <TData = Awaited<ReturnType<typeof getGoals>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getGoals>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetGoalsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getGoals>>> = ({ signal }) => getGoals({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getGoals>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetGoalsQueryResult = NonNullable<Awaited<ReturnType<typeof getGoals>>>
+export type GetGoalsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List user financial goals with calculated metrics
+ */
+
+export function useGetGoals<TData = Awaited<ReturnType<typeof getGoals>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getGoals>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetGoalsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateGoalUrl = () => {
+
+
+
+
+  return `/api/goals`
+}
+
+/**
+ * @summary Create a financial goal
+ */
+export const createGoal = async (goalInput: GoalInput, options?: Parameters<typeof customFetch>[1]): Promise<FinancialGoal> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<FinancialGoal>(getCreateGoalUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(goalInput)
+  }
+);}
+
+
+
+
+
+export const getCreateGoalMutationKey = () => ['createGoal'] as const;
+
+export const getCreateGoalMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createGoal>>, TError,CreateGoalMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createGoal>>, TError,CreateGoalMutationVariables, TContext> => {
+
+const mutationKey = getCreateGoalMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createGoal>>, CreateGoalMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  createGoal(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateGoalMutationResult = NonNullable<Awaited<ReturnType<typeof createGoal>>>
+    export type CreateGoalMutationBody = BodyType<GoalInput>
+    export type CreateGoalMutationError = ErrorType<unknown>
+    export type CreateGoalMutationVariables = {data: BodyType<GoalInput>}
+
+    /**
+ * @summary Create a financial goal
+ */
+export const useCreateGoal = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createGoal>>, TError,CreateGoalMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createGoal>>,
+        TError,
+        CreateGoalMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateGoalMutationOptions(options));
+    }
+
+export const getGetGoalUrl = (goalId: string,) => {
+
+
+
+
+  return `/api/goals/${goalId}`
+}
+
+/**
+ * @summary Get goal details and contributions
+ */
+export const getGoal = async (goalId: string, options?: Parameters<typeof customFetch>[1]): Promise<FinancialGoalDetail> => {
+
+  return customFetch<FinancialGoalDetail>(getGetGoalUrl(goalId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetGoalQueryKey = (goalId: string,) => {
+    return [
+    `/api/goals/${goalId}`
+    ] as const;
+    }
+
+
+export const getGetGoalQueryOptions = <TData = Awaited<ReturnType<typeof getGoal>>, TError = ErrorType<unknown>>(goalId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getGoal>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetGoalQueryKey(goalId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getGoal>>> = ({ signal }) => getGoal(goalId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: goalId !== null && goalId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getGoal>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetGoalQueryResult = NonNullable<Awaited<ReturnType<typeof getGoal>>>
+export type GetGoalQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get goal details and contributions
+ */
+
+export function useGetGoal<TData = Awaited<ReturnType<typeof getGoal>>, TError = ErrorType<unknown>>(
+ goalId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getGoal>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetGoalQueryOptions(goalId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getUpdateGoalUrl = (goalId: string,) => {
+
+
+
+
+  return `/api/goals/${goalId}`
+}
+
+/**
+ * @summary Update a financial goal
+ */
+export const updateGoal = async (goalId: string,
+    goalInput: GoalInput, options?: Parameters<typeof customFetch>[1]): Promise<FinancialGoal> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<FinancialGoal>(getUpdateGoalUrl(goalId),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(goalInput)
+  }
+);}
+
+
+
+
+
+export const getUpdateGoalMutationKey = () => ['updateGoal'] as const;
+
+export const getUpdateGoalMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateGoal>>, TError,UpdateGoalMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateGoal>>, TError,UpdateGoalMutationVariables, TContext> => {
+
+const mutationKey = getUpdateGoalMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateGoal>>, UpdateGoalMutationVariables> = (props) => {
+          const {goalId,data} = props ?? {};
+
+          return  updateGoal(goalId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateGoalMutationResult = NonNullable<Awaited<ReturnType<typeof updateGoal>>>
+    export type UpdateGoalMutationBody = BodyType<GoalInput>
+    export type UpdateGoalMutationError = ErrorType<unknown>
+    export type UpdateGoalMutationVariables = {goalId: string;data: BodyType<GoalInput>}
+
+    /**
+ * @summary Update a financial goal
+ */
+export const useUpdateGoal = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateGoal>>, TError,UpdateGoalMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateGoal>>,
+        TError,
+        UpdateGoalMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUpdateGoalMutationOptions(options));
+    }
+
+export const getDeleteGoalUrl = (goalId: string,) => {
+
+
+
+
+  return `/api/goals/${goalId}`
+}
+
+/**
+ * @summary Delete a goal
+ */
+export const deleteGoal = async (goalId: string, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+
+  return customFetch<void>(getDeleteGoalUrl(goalId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getDeleteGoalMutationKey = () => ['deleteGoal'] as const;
+
+export const getDeleteGoalMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteGoal>>, TError,DeleteGoalMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteGoal>>, TError,DeleteGoalMutationVariables, TContext> => {
+
+const mutationKey = getDeleteGoalMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteGoal>>, DeleteGoalMutationVariables> = (props) => {
+          const {goalId} = props ?? {};
+
+          return  deleteGoal(goalId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteGoalMutationResult = NonNullable<Awaited<ReturnType<typeof deleteGoal>>>
+
+    export type DeleteGoalMutationError = ErrorType<unknown>
+    export type DeleteGoalMutationVariables = {goalId: string}
+
+    /**
+ * @summary Delete a goal
+ */
+export const useDeleteGoal = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteGoal>>, TError,DeleteGoalMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteGoal>>,
+        TError,
+        DeleteGoalMutationVariables,
+        TContext
+      > => {
+      return useMutation(getDeleteGoalMutationOptions(options));
+    }
+
+export const getAddGoalContributionUrl = (goalId: string,) => {
+
+
+
+
+  return `/api/goals/${goalId}/contributions`
+}
+
+/**
+ * @summary Add a contribution to a goal
+ */
+export const addGoalContribution = async (goalId: string,
+    goalContributionInput: GoalContributionInput, options?: Parameters<typeof customFetch>[1]): Promise<FinancialGoalDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<FinancialGoalDetail>(getAddGoalContributionUrl(goalId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(goalContributionInput)
+  }
+);}
+
+
+
+
+
+export const getAddGoalContributionMutationKey = () => ['addGoalContribution'] as const;
+
+export const getAddGoalContributionMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addGoalContribution>>, TError,AddGoalContributionMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof addGoalContribution>>, TError,AddGoalContributionMutationVariables, TContext> => {
+
+const mutationKey = getAddGoalContributionMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof addGoalContribution>>, AddGoalContributionMutationVariables> = (props) => {
+          const {goalId,data} = props ?? {};
+
+          return  addGoalContribution(goalId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AddGoalContributionMutationResult = NonNullable<Awaited<ReturnType<typeof addGoalContribution>>>
+    export type AddGoalContributionMutationBody = BodyType<GoalContributionInput>
+    export type AddGoalContributionMutationError = ErrorType<unknown>
+    export type AddGoalContributionMutationVariables = {goalId: string;data: BodyType<GoalContributionInput>}
+
+    /**
+ * @summary Add a contribution to a goal
+ */
+export const useAddGoalContribution = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addGoalContribution>>, TError,AddGoalContributionMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof addGoalContribution>>,
+        TError,
+        AddGoalContributionMutationVariables,
+        TContext
+      > => {
+      return useMutation(getAddGoalContributionMutationOptions(options));
+    }
 
 export const getGetSimulatorStatusUrl = () => {
 
@@ -1534,6 +2427,94 @@ export function useGetSimulatorStatus<TData = Awaited<ReturnType<typeof getSimul
 
 
 
+export const getRunSimulationUrl = () => {
+
+
+
+
+  return `/api/simulator/run`
+}
+
+/**
+ * @summary Run deterministic what-if financial scenario simulation
+ */
+export const runSimulation = async (simulatorInput: SimulatorInput, options?: Parameters<typeof customFetch>[1]): Promise<SimulatorResult> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<SimulatorResult>(getRunSimulationUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(simulatorInput)
+  }
+);}
+
+
+
+
+
+export const getRunSimulationMutationKey = () => ['runSimulation'] as const;
+
+export const getRunSimulationMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof runSimulation>>, TError,RunSimulationMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof runSimulation>>, TError,RunSimulationMutationVariables, TContext> => {
+
+const mutationKey = getRunSimulationMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof runSimulation>>, RunSimulationMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  runSimulation(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RunSimulationMutationResult = NonNullable<Awaited<ReturnType<typeof runSimulation>>>
+    export type RunSimulationMutationBody = BodyType<SimulatorInput>
+    export type RunSimulationMutationError = ErrorType<unknown>
+    export type RunSimulationMutationVariables = {data: BodyType<SimulatorInput>}
+
+    /**
+ * @summary Run deterministic what-if financial scenario simulation
+ */
+export const useRunSimulation = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof runSimulation>>, TError,RunSimulationMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof runSimulation>>,
+        TError,
+        RunSimulationMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRunSimulationMutationOptions(options));
+    }
+
 export const getGetAssistantStatusUrl = () => {
 
 
@@ -1610,4 +2591,92 @@ export function useGetAssistantStatus<TData = Awaited<ReturnType<typeof getAssis
 
 
 
+
+export const getAskAssistantChatUrl = () => {
+
+
+
+
+  return `/api/assistant/chat`
+}
+
+/**
+ * @summary Ask AI financial planning assistant for verified explanations
+ */
+export const askAssistantChat = async (chatInput: ChatInput, options?: Parameters<typeof customFetch>[1]): Promise<ChatResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<ChatResponse>(getAskAssistantChatUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(chatInput)
+  }
+);}
+
+
+
+
+
+export const getAskAssistantChatMutationKey = () => ['askAssistantChat'] as const;
+
+export const getAskAssistantChatMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof askAssistantChat>>, TError,AskAssistantChatMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof askAssistantChat>>, TError,AskAssistantChatMutationVariables, TContext> => {
+
+const mutationKey = getAskAssistantChatMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof askAssistantChat>>, AskAssistantChatMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  askAssistantChat(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AskAssistantChatMutationResult = NonNullable<Awaited<ReturnType<typeof askAssistantChat>>>
+    export type AskAssistantChatMutationBody = BodyType<ChatInput>
+    export type AskAssistantChatMutationError = ErrorType<unknown>
+    export type AskAssistantChatMutationVariables = {data: BodyType<ChatInput>}
+
+    /**
+ * @summary Ask AI financial planning assistant for verified explanations
+ */
+export const useAskAssistantChat = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof askAssistantChat>>, TError,AskAssistantChatMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof askAssistantChat>>,
+        TError,
+        AskAssistantChatMutationVariables,
+        TContext
+      > => {
+      return useMutation(getAskAssistantChatMutationOptions(options));
+    }
 

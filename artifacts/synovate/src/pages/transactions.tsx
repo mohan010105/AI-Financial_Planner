@@ -119,6 +119,8 @@ export default function TransactionsPage() {
   const mutationBusy = create.isPending || update.isPending;
   const mutationError = (create.error || update.error)?.message;
 
+  const [deletingTransaction, setDeletingTransaction] = useState<Transaction | null>(null);
+
   function refreshData() {
     void queryClient.invalidateQueries({ queryKey: getListTransactionsQueryKey() });
     void queryClient.invalidateQueries({ queryKey: getGetTransactionSummaryQueryKey() });
@@ -127,10 +129,8 @@ export default function TransactionsPage() {
     if (editing) update.mutate({ transactionId: editing.id, data }, { onSuccess: () => { setEditing(null); refreshData(); } });
     else create.mutate({ data }, { onSuccess: () => { setAdding(false); refreshData(); } });
   }
-  function deleteTransaction(transaction: Transaction) {
-    if (window.confirm(`Delete this ${transaction.type.toLowerCase()} transaction? This cannot be undone.`)) {
-      remove.mutate({ transactionId: transaction.id }, { onSuccess: refreshData });
-    }
+  function confirmDelete(transaction: Transaction) {
+    setDeletingTransaction(transaction);
   }
   async function chooseFile(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
@@ -209,7 +209,7 @@ export default function TransactionsPage() {
       @media(max-width:600px){.tx-toolbar{align-items:flex-start;flex-direction:column}.tx-toolbar-actions{width:100%}.tx-toolbar-actions .btn{flex:1}.tx-filters{grid-template-columns:repeat(2,minmax(0,1fr))}.tx-search{grid-column:span 2}.tx-import-head{flex-direction:column}.tx-import-head .btn{width:100%}.tx-table-head{padding:13px}.tx-pagination{padding:11px 12px}.tx-form-two{grid-template-columns:1fr}.tx-dialog{padding:17px}.tx-preview-row{grid-template-columns:48px 1fr}}
     `}</style>
     <div className="page-intro"><div><div className="eyebrow">YOUR ACCOUNT <span className="eyebrow-line" /></div><h1>Transactions</h1><p>A clear record of money in and money out.</p></div></div>
-    {summary.isLoading ? <div className="tx-summary-grid" aria-label="Transaction summary loading"><Card className="tx-summary-card"><Loading label="Loading income summary" /></Card><Card className="tx-summary-card"><Loading label="Loading expense summary" /></Card><Card className="tx-summary-card"><Loading label="Loading cash flow summary" /></Card><Card className="tx-summary-card"><Loading label="Loading monthly cash flow summary" /></Card></div> : summary.isError || !summary.data ? <div style={{ marginBottom: 15 }}><ErrorState onRetry={() => { void summary.refetch(); }} /></div> : <section className="tx-summary-grid" aria-label="Transaction summary" data-testid="transaction-summary">
+    {summary.isLoading ? <div className="tx-summary-grid" aria-label="Transaction summary loading"><Card className="tx-summary-card"><Loading label="Loading income summary" /></Card><Card className="tx-summary-card"><Loading label="Loading expense summary" /></Card><Card className="tx-summary-card"><Loading label="Loading cash flow summary" /></Card><Card className="tx-summary-card"><Loading label="Loading monthly cash flow summary" /></Card></div> : summary.isError || !summary.data ? <div style={{ marginBottom: 15 }}><ErrorState error={summary.error} title="We couldn’t calculate transaction totals." description="A problem occurred while computing your transaction metrics. Please try again." onRetry={() => { void summary.refetch(); }} /></div> : <section className="tx-summary-grid" aria-label="Transaction summary" data-testid="transaction-summary">
       <Card className="tx-summary-card" data-testid="summary-total-income"><span>Total income</span><strong>{currency(summary.data.totalIncome, summary.data.currencyCode)}</strong></Card>
       <Card className="tx-summary-card" data-testid="summary-total-expenses"><span>Total expenses</span><strong>{currency(summary.data.totalExpenses, summary.data.currencyCode)}</strong></Card>
       <Card className="tx-summary-card" data-testid="summary-net-cash-flow"><span>Net cash flow</span><strong>{currency(summary.data.netCashFlow, summary.data.currencyCode)}</strong></Card>
@@ -237,15 +237,56 @@ export default function TransactionsPage() {
       <label className="field-wrap"><span className="field-label">To</span><input className="field-input" type="date" value={toDate} min={fromDate || undefined} onChange={(e) => { setToDate(e.target.value); setPage(1); }} data-testid="filter-transaction-to-date" /></label>
     </div></Card>
 
-    {query.isLoading ? <Card><Loading label="Loading transactions" /></Card> : query.isError ? <ErrorState onRetry={() => { void query.refetch(); }} /> : !result?.transactions.length ? <Card><Empty title={search || type || category || fromDate || toDate ? 'No matching transactions' : 'No transactions yet'} description={search || type || category || fromDate || toDate ? 'Try adjusting your search or filters.' : 'Add your first income or expense to begin a clear account of your cash flow.'} />{!search && !type && !category && !fromDate && !toDate && <div className="tx-empty-action" style={{ display: 'flex', justifyContent: 'center', paddingBottom: 25 }}><Button onClick={() => setAdding(true)} data-testid="button-add-first-transaction"><CirclePlus size={15} /> Add transaction</Button></div>}</Card> : <Card className="tx-table-card">
+    {query.isLoading ? <Card><Loading label="Loading transactions" /></Card> : query.isError ? <ErrorState error={query.error} title="We couldn’t load transactions." description="A problem occurred while retrieving your transactions. Please try again." onRetry={() => { void query.refetch(); }} /> : !result?.transactions.length ? <Card><Empty title={search || type || category || fromDate || toDate ? 'No matching transactions' : 'No transactions yet'} description={search || type || category || fromDate || toDate ? 'Try adjusting your search or filters.' : 'Add your first income or expense to begin a clear account of your cash flow.'} />{!search && !type && !category && !fromDate && !toDate && <div className="tx-empty-action" style={{ display: 'flex', justifyContent: 'center', paddingBottom: 25 }}><Button onClick={() => setAdding(true)} data-testid="button-add-first-transaction"><CirclePlus size={15} /> Add transaction</Button></div>}</Card> : <Card className="tx-table-card">
       <div className="tx-table-head"><span><strong>{result.total}</strong> {result.total === 1 ? 'transaction' : 'transactions'}</span><label style={{ display: 'flex', alignItems: 'center', gap: 7 }}>Sort by <select className="field-input" style={{ width: 145, height: 32 }} value={sortBy} onChange={(e) => { setSortBy(e.target.value as NonNullable<ListTransactionsParams['sortBy']>); setPage(1); }} data-testid="select-transaction-sort"><option value="transactionDate">Date</option><option value="amount">Amount</option><option value="category">Category</option><option value="createdAt">Created</option></select><button className="icon-button" aria-label={`Sort ${sortOrder === 'DESC' ? 'ascending' : 'descending'}`} onClick={() => setSortOrder(sortOrder === 'DESC' ? 'ASC' : 'DESC')} data-testid="button-sort-order">{sortOrder === 'DESC' ? <ArrowDown size={15} /> : <ArrowUp size={15} />}</button></label></div>
       {remove.error && <div className="tx-error-inline"><p className="form-error" role="alert">Could not delete transaction: {remove.error.message}</p></div>}
       <div className="tx-table"><table><thead><tr><th><button className="tx-sort" onClick={() => changeSort('transactionDate')} data-testid="sort-transaction-date"><CalendarDays size={12} /> Date {sortBy === 'transactionDate' ? sortOrder === 'DESC' ? '↓' : '↑' : ''}</button></th><th>Details</th><th><button className="tx-sort" onClick={() => changeSort('category')} data-testid="sort-transaction-category">Category {sortBy === 'category' ? sortOrder === 'DESC' ? '↓' : '↑' : ''}</button></th><th>Type</th><th><button className="tx-sort" onClick={() => changeSort('amount')} data-testid="sort-transaction-amount">Amount {sortBy === 'amount' ? sortOrder === 'DESC' ? '↓' : '↑' : ''}</button></th><th aria-label="Actions" /></tr></thead><tbody>
-        {result.transactions.map((transaction) => <tr key={transaction.id} data-testid={`row-transaction-${transaction.id}`}><td>{dateLabel(transaction.transactionDate)}</td><td><strong style={{ color: '#394f49', fontWeight: 600 }}>{transaction.description || transaction.category}</strong>{transaction.description && <span className="tx-description">{transaction.recurring ? 'Recurring entry' : 'Personal transaction'}</span>}</td><td><span className="tx-category">{transaction.category}</span></td><td><span className={`tx-type ${transaction.type === 'EXPENSE' ? 'expense' : ''}`}><i />{transaction.type === 'INCOME' ? 'Income' : 'Expense'}</span></td><td className={`tx-amount ${transaction.type === 'EXPENSE' ? 'expense' : ''}`}>{transaction.type === 'INCOME' ? '+' : '−'}{formatAmount(transaction.amount)}</td><td><div className="tx-row-actions"><button className="icon-button" aria-label={`Edit ${transaction.description || transaction.category}`} onClick={() => { setEditing(transaction); setAdding(false); }} data-testid={`button-edit-transaction-${transaction.id}`}><Pencil size={14} /></button><button className="icon-button" aria-label={`Delete ${transaction.description || transaction.category}`} disabled={remove.isPending} onClick={() => deleteTransaction(transaction)} data-testid={`button-delete-transaction-${transaction.id}`}><Trash2 size={14} /></button></div></td></tr>)}
+        {result.transactions.map((transaction) => <tr key={transaction.id} data-testid={`row-transaction-${transaction.id}`}><td>{dateLabel(transaction.transactionDate)}</td><td><strong style={{ color: '#142033', fontWeight: 600 }}>{transaction.description || transaction.category}</strong>{transaction.description && <span className="tx-description">{transaction.recurring ? 'Recurring entry' : 'Personal transaction'}</span>}</td><td><span className="tx-category" style={{ background: '#E9F7F0', color: '#0F9F75', fontWeight: 600 }}>{transaction.category}</span></td><td><span className={`tx-type ${transaction.type === 'EXPENSE' ? 'expense' : ''}`}><i />{transaction.type === 'INCOME' ? 'Income' : 'Expense'}</span></td><td className={`tx-amount tabular-nums ${transaction.type === 'EXPENSE' ? 'expense' : ''}`} style={{ fontWeight: 600 }}>{transaction.type === 'INCOME' ? '+' : '−'}{formatAmount(transaction.amount)}</td><td><div className="tx-row-actions"><button className="icon-button" aria-label={`Edit ${transaction.description || transaction.category}`} onClick={() => { setEditing(transaction); setAdding(false); }} data-testid={`button-edit-transaction-${transaction.id}`}><Pencil size={14} /></button><button className="icon-button" aria-label={`Delete ${transaction.description || transaction.category}`} disabled={remove.isPending} onClick={() => confirmDelete(transaction)} data-testid={`button-delete-transaction-${transaction.id}`}><Trash2 size={14} /></button></div></td></tr>)}
       </tbody></table></div>
       <div className="tx-pagination"><span>Page {result.page} of {Math.max(result.totalPages, 1)}</span><div className="tx-pagination-actions"><button className="icon-button" aria-label="Previous page" disabled={page <= 1} onClick={() => setPage((value) => Math.max(1, value - 1))} data-testid="button-previous-transactions"><ChevronLeft size={16} /></button><button className="icon-button" aria-label="Next page" disabled={page >= result.totalPages} onClick={() => setPage((value) => Math.min(result.totalPages, value + 1))} data-testid="button-next-transactions"><ChevronRight size={16} /></button></div></div>
     </Card>}
     {query.isFetching && !query.isLoading && <p style={{ margin: '9px 3px', color: '#8b9690', fontSize: 9 }} role="status">Updating results…</p>}
     {(adding || editing) && <TransactionForm initial={editing ?? undefined} busy={mutationBusy} error={mutationError} onCancel={() => { setAdding(false); setEditing(null); create.reset(); update.reset(); }} onSave={saveTransaction} />}
+    {deletingTransaction && (
+      <div className="tx-backdrop" role="presentation" onMouseDown={(e) => { if (e.target === e.currentTarget) setDeletingTransaction(null); }}>
+        <section className="tx-dialog" role="dialog" aria-modal="true" aria-labelledby="tx-delete-title" style={{ maxWidth: 420 }}>
+          <div className="tx-dialog-head">
+            <div>
+              <span className="chart-kicker" style={{ color: '#DC2626' }}>CONFIRM REMOVAL</span>
+              <h2 id="tx-delete-title" style={{ fontSize: 18, color: '#142033' }}>Delete transaction?</h2>
+            </div>
+            <button className="icon-button" onClick={() => setDeletingTransaction(null)} aria-label="Close dialog">
+              <X size={18} />
+            </button>
+          </div>
+          <p style={{ fontSize: 13, color: '#64748B', lineHeight: 1.5, margin: '8px 0 18px' }}>
+            Are you sure you want to delete <strong>{deletingTransaction.description || deletingTransaction.category}</strong> ({formatAmount(deletingTransaction.amount)})? This cannot be undone.
+          </p>
+          <div className="tx-form-actions">
+            <Button variant="outline" type="button" onClick={() => setDeletingTransaction(null)}>
+              Cancel
+            </Button>
+            <button
+              className="btn btn-md"
+              style={{ background: '#DC2626', color: '#ffffff' }}
+              disabled={remove.isPending}
+              onClick={() => {
+                remove.mutate(
+                  { transactionId: deletingTransaction.id },
+                  {
+                    onSuccess: () => {
+                      setDeletingTransaction(null);
+                      refreshData();
+                    },
+                  },
+                );
+              }}
+            >
+              {remove.isPending ? 'Deleting…' : 'Delete transaction'}
+            </button>
+          </div>
+        </section>
+      </div>
+    )}
   </div>;
 }

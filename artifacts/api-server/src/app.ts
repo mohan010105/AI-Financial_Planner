@@ -1,11 +1,17 @@
 import express, { type Express } from "express";
+import cors from "cors";
 import pinoHttp from "pino-http";
 import router from "./routes";
 import { logger } from "./lib/logger";
 import { loadSession } from "./middleware/session";
 
+import { corsMiddleware } from "./lib/cors";
+
 const app: Express = express();
 app.set("trust proxy", 1);
+
+// Apply CORS before any route handlers or middleware that could reject requests
+app.use(corsMiddleware);
 
 app.use(
   pinoHttp({
@@ -26,7 +32,22 @@ app.use(
     },
   }),
 );
-app.use(express.json({ limit: "1.2mb" }));
+declare global {
+  namespace Express {
+    interface Request {
+      rawBody?: Buffer;
+    }
+  }
+}
+
+app.use(
+  express.json({
+    limit: "1.2mb",
+    verify: (req: any, _res, buf) => {
+      req.rawBody = buf;
+    },
+  }),
+);
 app.use((request, response, next) => {
   response.set("Cache-Control", "no-store, private");
   next();
@@ -53,10 +74,14 @@ app.use((error: unknown, request: express.Request, response: express.Response, n
         : 500;
 
   if (status >= 500) {
-    request.log.error(
-      { errorType: error instanceof Error ? error.name : "UnknownError" },
-      "Unhandled API request error",
-    );
+    if (request.log && typeof request.log.error === "function") {
+      request.log.error(
+        { errorType: error instanceof Error ? error.name : "UnknownError" },
+        "Unhandled API request error",
+      );
+    } else {
+      console.error("Unhandled API request error:", error);
+    }
   }
 
   const errorMessage = status === 400

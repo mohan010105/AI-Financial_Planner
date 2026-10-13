@@ -5,30 +5,17 @@ import { defineConfig } from 'vite';
 
 import runtimeErrorOverlay from '@replit/vite-plugin-runtime-error-modal';
 
-const rawPort = process.env.PORT;
-
-if (!rawPort) {
-  throw new Error(
-    'PORT environment variable is required but was not provided.',
-  );
-}
-
+const backendPort = process.env.PORT || '5000';
+const rawPort = process.env.FRONTEND_PORT || process.env.VITE_PORT || '5173';
 const port = Number(rawPort);
+const parsedPort = Number.isNaN(port) || port <= 0 ? 5173 : port;
 
-if (Number.isNaN(port) || port <= 0) {
-  throw new Error(`Invalid PORT value: "${rawPort}"`);
-}
-
-const basePath = process.env.BASE_PATH;
-
-if (!basePath) {
-  throw new Error(
-    'BASE_PATH environment variable is required but was not provided.',
-  );
-}
+const basePath = process.env.BASE_PATH || '/';
+const apiTarget = process.env.VITE_API_TARGET || `http://localhost:${backendPort}`;
 
 export default defineConfig({
   base: basePath,
+  envPrefix: ['VITE_', 'NEXT_PUBLIC_'],
   plugins: [
     react(),
     tailwindcss(),
@@ -65,16 +52,22 @@ export default defineConfig({
     emptyOutDir: true,
   },
   server: {
-    port,
-    strictPort: true,
+    port: parsedPort,
+    strictPort: false,
     host: '0.0.0.0',
     allowedHosts: true,
+    proxy: {
+      '/api': {
+        target: apiTarget,
+        changeOrigin: true,
+      },
+    },
     fs: {
       strict: true,
     },
   },
   preview: {
-    port,
+    port: parsedPort,
     host: '0.0.0.0',
     allowedHosts: true,
   },
